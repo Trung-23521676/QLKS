@@ -1,4 +1,5 @@
-import { Search } from "lucide-react"
+import { useState } from "react";
+import { Search } from "lucide-react";
 
 const guests = [
   {
@@ -10,35 +11,19 @@ const guests = [
     status: "Confirmed",
   },
   {
-    name: "Ms Zzzzzzzz",
-    bookingId: "1111",
-    checkIn: "11/11/2025",
-    checkOut: "11/11/2025",
-    roomType: "A",
+    name: "Mr John Smith",
+    bookingId: "2222",
+    checkIn: "12/12/2025",
+    checkOut: "13/12/2025",
+    roomType: "B",
     status: "Declined",
   },
   {
-    name: "Ms Zzzzzzzz",
-    bookingId: "1111",
-    checkIn: "11/11/2025",
-    checkOut: "11/11/2025",
-    roomType: "A",
-    status: "Declined",
-  },
-  {
-    name: "Ms Zzzzzzzz",
-    bookingId: "1111",
-    checkIn: "11/11/2025",
-    checkOut: "11/11/2025",
-    roomType: "A",
-    status: "Awaiting",
-  },
-  {
-    name: "Ms Zzzzzzzz",
-    bookingId: "1111",
-    checkIn: "11/11/2025",
-    checkOut: "11/11/2025",
-    roomType: "A",
+    name: "Mrs Anna Lee",
+    bookingId: "3333",
+    checkIn: "14/12/2025",
+    checkOut: "15/12/2025",
+    roomType: "C",
     status: "Awaiting",
   },
 ];
@@ -55,62 +40,88 @@ function StatusBadge({ status }) {
   );
 }
 
-const Reservations =() => {
-    return (
-        <>
-        <div className="relative z-10 flex h-[60px] items-end justify-end bg-white px-4 transition-colors dark:bg-slate-50">
-                    <div className="input">
-                            <Search
-                                size={20}
-                                className="text-slate-300"
-                                
-                            />
-                            <input
-                                type="text"
-                                name="search"
-                                id="search"
-                                placeholder="Search..."
-                                className="w-full bg-transparent text-slate-400 outline-0 placeholder:text-slate-300 dark:text-slate-900"
-                            />
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                <table className="min-w-full bg-blue-50 rounded-lg">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-2 text-left">Guest</th>
-                      <th className="px-4 py-2 text-left">Booking ID</th>
-                      <th className="px-4 py-2 text-left">Check in</th>
-                      <th className="px-4 py-2 text-left">Check out</th>
-                      <th className="px-4 py-2 text-left">Room type</th>
-                      <th className="px-4 py-2 text-left">Status</th>
-                      <th className="px-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guests.map((guest, idx) => (
-                      <tr key={idx} className="bg-white border-b last:border-b-0">
-                        <td className="flex items-center px-4 py-2">
-                          <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block"></span>
-                          <span>
-                            <div className="font-medium">Ms</div>
-                            <div className="text-xs text-gray-500">{guest.name}</div>
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">{guest.bookingId}</td>
-                        <td className="px-4 py-2">{guest.checkIn}</td>
-                        <td className="px-4 py-2">{guest.checkOut}</td>
-                        <td className="px-4 py-2">{guest.roomType}</td>
-                        <td className="px-4 py-2">
-                          <StatusBadge status={guest.status} />
-                        </td>
-                        <td className="px-2 py-2 text-gray-400">&gt;</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-        </>
-    )}
+const Reservations = () => {
+  const [search, setSearch] = useState("");
 
-export default Reservations
+  const filteredGuests = guests.filter((guest) =>
+    guest.name.toLowerCase().includes(search.toLowerCase()) ||
+    guest.bookingId.includes(search) ||
+    guest.roomType.toLowerCase().includes(search.toLowerCase()) ||
+    guest.status.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <>
+      <div>
+        <p className="label">Reservations</p>
+        <p className="labeldash">_______________</p>
+      </div>
+      {/* Unified Search Layout */}
+      <div className="flex justify-end text-black mb-4">
+        <div className="relative w-full max-w-xs">
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <input
+            type="text"
+            name="search"
+            id="search"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-black rounded-md text-sm bg-white focus:outline-none focus:ring-0"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-blue-200 rounded-lg text-black">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left">Guest</th>
+              <th className="px-4 py-2 text-left">Booking ID</th>
+              <th className="px-4 py-2 text-left">Check in</th>
+              <th className="px-4 py-2 text-left">Check out</th>
+              <th className="px-4 py-2 text-left">Room type</th>
+              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredGuests.length > 0 ? (
+              filteredGuests.map((guest, idx) => (
+                <tr key={idx} className="bg-white border-b last:border-b-0">
+                  <td className="flex items-center px-4 py-2">
+                    <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block"></span>
+                    <span>
+                      <div className="font-medium">
+                        {guest.name.split(" ")[0]}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {guest.name.split(" ").slice(1).join(" ")}
+                      </div>
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">{guest.bookingId}</td>
+                  <td className="px-4 py-2">{guest.checkIn}</td>
+                  <td className="px-4 py-2">{guest.checkOut}</td>
+                  <td className="px-4 py-2">{guest.roomType}</td>
+                  <td className="px-4 py-2">
+                    <StatusBadge status={guest.status} />
+                  </td>
+                  <td className="px-2 py-2 text-gray-400">&gt;</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center py-4 bg-white text-gray-500">
+                  No reservations found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+};
+
+export default Reservations;

@@ -2,15 +2,8 @@ import React, { useEffect, useState } from "react";
 import "./Table.css";
 import { Pencil, X } from "lucide-react";
 
-type Service = {
-  id: string;
-  serviceId: string;
-  name: string;
-  price: number;
-};
-
-export default function ServiceTable({search}) {
-  const [services, setService] = useState<Service[]>([]);
+export default function ServiceTable({ search }) {
+  const [services, setService] = useState([]);
 
   // Dữ liệu giả
   const getFakeService = () => [
@@ -56,17 +49,17 @@ export default function ServiceTable({search}) {
       name: "G",
       price: 7000,
     },
-  ]
+  ];
 
   useEffect(() => {
     setService(getFakeService());
   }, []);
 
-  const filteredData = search 
+  const filteredData = search
     ? services.filter((service) =>
-      service.serviceId.toLowerCase().includes(search.toLowerCase())
-    )
-  : services;
+        service.serviceId.toLowerCase().includes(search.toLowerCase())
+      )
+    : services;
 
   return (
     <div className="table-container">
@@ -95,7 +88,7 @@ export default function ServiceTable({search}) {
               </td>
             </tr>
           ))}
-          </tbody>
+        </tbody>
       </table>
     </div>
   );

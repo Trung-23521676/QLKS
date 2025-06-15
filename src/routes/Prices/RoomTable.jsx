@@ -2,21 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./Table.css";
 import { Pencil, X } from "lucide-react";
 
-type Room = {
-  id: string;
-  roomTypeId: string;
-  roomType: string;
-  area: number;
-  bed: string;
-  max: number;
-  price: number;
-  surcharge: number;
-  rooms: string;
-  note: string;
-};
+export default function RoomTable({ search }) {
+  const [rooms, setRooms] = useState([]);
 
-export default function RoomTable({ search }: { search: string }) {
-  const [rooms, setRooms] = useState<Room[]>([]);
   // Dữ liệu giả
   const getFakeRooms = () => [
     {
@@ -121,12 +109,11 @@ export default function RoomTable({ search }: { search: string }) {
     setRooms(getFakeRooms());
   }, []);
 
-  const filteredData = search 
+  const filteredData = search
     ? rooms.filter((room) =>
-      room.roomTypeId.toLowerCase().includes(search.toLowerCase())
-    )
-  : rooms;
-
+        room.roomTypeId.toLowerCase().includes(search.toLowerCase())
+      )
+    : rooms;
 
   return (
     <div className="table-container">

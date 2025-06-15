@@ -1,0 +1,27 @@
+.create-button {
+    width: 187px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 30px;
+    border: 1px solid #005F94;
+    background: #0077B6;
+    color: #FFF;
+    font-family: Inter;
+    font-size: 16px;
+        font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}.create-button {
+    width: 187px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 30px;
+    border: 1px solid #005F94;
+    background: #0077B6;
+    color: #FFF;
+    font-family: Inter;
+    font-size: 16px;
+        font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
