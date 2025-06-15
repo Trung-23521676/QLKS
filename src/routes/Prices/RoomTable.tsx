@@ -15,9 +15,8 @@ type Room = {
   note: string;
 };
 
-export default function RoomTable() {
+export default function RoomTable({ search }: { search: string }) {
   const [rooms, setRooms] = useState<Room[]>([]);
-
   // Dữ liệu giả
   const getFakeRooms = () => [
     {
@@ -81,7 +80,7 @@ export default function RoomTable() {
       note: "",
     },
     {
-      id: "5",
+      id: "6",
       roomTypeId: "C1",
       roomType: "C",
       area: 40,
@@ -93,7 +92,7 @@ export default function RoomTable() {
       note: "",
     },
     {
-      id: "5",
+      id: "7",
       roomTypeId: "C1",
       roomType: "C",
       area: 40,
@@ -105,7 +104,7 @@ export default function RoomTable() {
       note: "",
     },
     {
-      id: "5",
+      id: "8",
       roomTypeId: "C1",
       roomType: "C",
       area: 40,
@@ -121,6 +120,13 @@ export default function RoomTable() {
   useEffect(() => {
     setRooms(getFakeRooms());
   }, []);
+
+  const filteredData = search 
+    ? rooms.filter((room) =>
+      room.roomTypeId.toLowerCase().includes(search.toLowerCase())
+    )
+  : rooms;
+
 
   return (
     <div className="table-container">
@@ -140,7 +146,7 @@ export default function RoomTable() {
           </tr>
         </thead>
         <tbody>
-          {rooms.map((room) => (
+          {filteredData.slice(0, 5).map((room) => (
             <tr key={room.id}>
               <td>{room.roomTypeId}</td>
               <td>{room.roomType}</td>

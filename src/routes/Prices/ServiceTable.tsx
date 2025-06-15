@@ -9,7 +9,7 @@ type Service = {
   price: number;
 };
 
-export default function ServiceTable() {
+export default function ServiceTable({search}) {
   const [services, setService] = useState<Service[]>([]);
 
   // Dữ liệu giả
@@ -62,6 +62,12 @@ export default function ServiceTable() {
     setService(getFakeService());
   }, []);
 
+  const filteredData = search 
+    ? services.filter((service) =>
+      service.serviceId.toLowerCase().includes(search.toLowerCase())
+    )
+  : services;
+
   return (
     <div className="table-container">
       <table className="table">
@@ -74,7 +80,7 @@ export default function ServiceTable() {
           </tr>
         </thead>
         <tbody>
-          {services.map((service) => (
+          {filteredData.slice(0, 5).map((service) => (
             <tr key={service.id}>
               <td>{service.serviceId}</td>
               <td>{service.name}</td>

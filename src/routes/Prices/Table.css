@@ -45,19 +45,21 @@
 .table td.actions {
   display: flex;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .edit-btn {
+  padding: 4px;
   background: none;
   border: none;
-  color: #007bff;
+  color: #0077B6;
   cursor: pointer;
 }
 
 .delete-btn {
+  padding: 4px;
   background: none;
   border: none;
-  color: #ff4d4f;
+  color: #FF6B35;
   cursor: pointer;
 }
