@@ -4,11 +4,18 @@ import Layout from "./routes/layout";
 import DailyOperationPage from "./routes/DailyOperation/Page"
 import Guests from "./routes/Guests/Page";
 import Reservations from "./routes/Reservations/Page"
+import Rooms from "./routes/Rooms/Page"
+import Service from "./routes/Service/Page"
+import Prices from "./routes/Prices/Page"
+import Report from "./routes/Report/Page";
+import { Header } from "./layouts/header";
+
 function App() {
   const router = createBrowserRouter([
     {
         path:"/",
-        element: <Layout/>,
+        element: 
+          <Layout/>,
         children: [
           {
             index:true, 
@@ -24,13 +31,20 @@ function App() {
           },
           {
             path: "Rooms",
-            element: <h1 className="title">Rooms</h1>
+            element: <Rooms/>
           },
           {
             path: "Service",
-            element: <h1 className="title">Service</h1>
+            element: <Service/>
           },
-          {/* Add more path here*/}
+          {
+            path: "Prices",
+            element: <Prices/>
+          },
+          {
+            path: "Report",
+            element: <Report/>
+          }
         ]
     }
   ]);

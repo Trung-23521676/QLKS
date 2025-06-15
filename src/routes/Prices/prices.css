@@ -1,0 +1,73 @@
+.prices-container {
+  height: max-content;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  margin: 1rem;
+}
+.label {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.labeldash {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: -14px;
+}
+.labelsearch {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.prices-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    display: flex;
+    width: 400px;
+    padding: 8px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 30px;
+    background: #FFF;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+    margin-right: 16px;
+}
+
+.create-button {
+    width: 187px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 30px;
+    border: 1px solid #005F94;
+    background: #0077B6;
+    color: #FFF;
+    font-family: Inter;
+    font-size: 16px;
+        font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.service-button:hover {
+  background-color: #0056b3;
+}

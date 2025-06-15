@@ -1,0 +1,63 @@
+.table-container {
+    margin-top: 16px;
+    background: transparent;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--Primary-Primary-50, #E8F1FD);
+    overflow-y: auto;
+    max-height: 250px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--Grey-Grey-600, #5D6679);
+    font-family: Inter;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+}
+
+.table thead {
+    background-color: #F0F8FF;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.table td.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  cursor: pointer;
+}

@@ -32,11 +32,11 @@ export default function RealTimeClock() {
   const dayWithOrd = `${day}${getOrdinal(day)}`
 
   return (
-    <div style={{ fontFamily: 'sans-serif', lineHeight: 1.2, textAlign: 'center' }}>
-      <div style={{ fontSize: '1rem', fontWeight: '500' }}>
-        {hours}:{minutes} <span style={{ fontSize: '1rem' }}>{tz}</span>
+    <div>
+      <div>
+        {hours}:{minutes} <span>{tz}</span>
       </div>
-      <div style={{ fontSize: '1rem', color: '#555' }}>
+      <div>
         {weekday}, {dayWithOrd} {month}, {year}
       </div>
     </div>

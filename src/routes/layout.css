@@ -1,0 +1,10 @@
+.page-container {
+    display: flex;
+    color: #F5F6FA
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 18%;
+    padding: 20px;
+}
