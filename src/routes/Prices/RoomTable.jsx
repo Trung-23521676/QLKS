@@ -2,21 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./Table.css";
 import { Pencil, X } from "lucide-react";
 
-type Room = {
-  id: string;
-  roomTypeId: string;
-  roomType: string;
-  area: number;
-  bed: string;
-  max: number;
-  price: number;
-  surcharge: number;
-  rooms: string;
-  note: string;
-};
+export default function RoomTable({ search, onEdit, onDelete}) {
+  const [rooms, setRooms] = useState([]);
 
-export default function RoomTable({ search }: { search: string }) {
-  const [rooms, setRooms] = useState<Room[]>([]);
   // Dữ liệu giả
   const getFakeRooms = () => [
     {
@@ -121,32 +109,31 @@ export default function RoomTable({ search }: { search: string }) {
     setRooms(getFakeRooms());
   }, []);
 
-  const filteredData = search 
+  const filteredData = search
     ? rooms.filter((room) =>
-      room.roomTypeId.toLowerCase().includes(search.toLowerCase())
-    )
-  : rooms;
-
+        room.roomTypeId.toLowerCase().includes(search.toLowerCase())
+      )
+    : rooms;
 
   return (
     <div className="table-container">
       <table className="table">
         <thead>
           <tr>
-            <th>Room type id</th>
+            <th>Room type ID</th>
             <th>Room type</th>
             <th>Area</th>
             <th>Bed</th>
             <th>Max</th>
             <th>Price</th>
             <th>Surcharge</th>
-            <th>Rooms</th>
+            {/* <th>Rooms</th> */}
             <th>Note</th>
             <th>Adjustment</th>
           </tr>
         </thead>
         <tbody>
-          {filteredData.slice(0, 5).map((room) => (
+          {filteredData.slice().map((room) => (
             <tr key={room.id}>
               <td>{room.roomTypeId}</td>
               <td>{room.roomType}</td>
@@ -155,13 +142,13 @@ export default function RoomTable({ search }: { search: string }) {
               <td>{room.max}</td>
               <td>{room.price}</td>
               <td>{room.surcharge}</td>
-              <td>{room.rooms}</td>
+              {/* <td>{room.rooms}</td> */}
               <td>{room.note}</td>
               <td className="actions">
-                <button className="edit-btn">
+                <button className="edit-btn" onClick={() => onEdit(room)}>
                   <Pencil size={16} />
                 </button>
-                <button className="delete-btn">
+                <button className="delete-btn" onClick={() => onDelete(room)}>
                   <X size={16} />
                 </button>
               </td>
