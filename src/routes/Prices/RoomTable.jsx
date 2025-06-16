@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Table.css";
 import { Pencil, X } from "lucide-react";
 
-export default function RoomTable({ search }) {
+export default function RoomTable({ search, onEdit, onDelete}) {
   const [rooms, setRooms] = useState([]);
 
   // Dữ liệu giả
@@ -120,20 +120,20 @@ export default function RoomTable({ search }) {
       <table className="table">
         <thead>
           <tr>
-            <th>Room type id</th>
+            <th>Room type ID</th>
             <th>Room type</th>
             <th>Area</th>
             <th>Bed</th>
             <th>Max</th>
             <th>Price</th>
             <th>Surcharge</th>
-            <th>Rooms</th>
+            {/* <th>Rooms</th> */}
             <th>Note</th>
             <th>Adjustment</th>
           </tr>
         </thead>
         <tbody>
-          {filteredData.slice(0, 5).map((room) => (
+          {filteredData.slice().map((room) => (
             <tr key={room.id}>
               <td>{room.roomTypeId}</td>
               <td>{room.roomType}</td>
@@ -142,13 +142,13 @@ export default function RoomTable({ search }) {
               <td>{room.max}</td>
               <td>{room.price}</td>
               <td>{room.surcharge}</td>
-              <td>{room.rooms}</td>
+              {/* <td>{room.rooms}</td> */}
               <td>{room.note}</td>
               <td className="actions">
-                <button className="edit-btn">
+                <button className="edit-btn" onClick={() => onEdit(room)}>
                   <Pencil size={16} />
                 </button>
-                <button className="delete-btn">
+                <button className="delete-btn" onClick={() => onDelete(room)}>
                   <X size={16} />
                 </button>
               </td>

@@ -27,6 +27,7 @@
 
 .notification-icon {
   position: relative;
+  cursor: pointer;
 }
 
 .bell-icon {

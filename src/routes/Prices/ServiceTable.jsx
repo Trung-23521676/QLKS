@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Table.css";
 import { Pencil, X } from "lucide-react";
 
-export default function ServiceTable({ search }) {
+export default function ServiceTable({ search, onEdit, onDelete }) {
   const [services, setService] = useState([]);
 
   // Dữ liệu giả
@@ -73,16 +73,16 @@ export default function ServiceTable({ search }) {
           </tr>
         </thead>
         <tbody>
-          {filteredData.slice(0, 5).map((service) => (
+          {filteredData.slice().map((service) => (
             <tr key={service.id}>
               <td>{service.serviceId}</td>
               <td>{service.name}</td>
               <td>{service.price}</td>
               <td className="actions">
-                <button className="edit-btn">
+                <button className="edit-btn" onClick={() => onEdit(service)}>
                   <Pencil size={16} />
                 </button>
-                <button className="delete-btn">
+                <button className="delete-btn" onClick={() => onDelete(service)}>
                   <X size={16} />
                 </button>
               </td>
