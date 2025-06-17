@@ -133,27 +133,33 @@ export default function RoomTable({ search, onEdit, onDelete}) {
           </tr>
         </thead>
         <tbody>
-          {filteredData.slice().map((room) => (
-            <tr key={room.id}>
-              <td>{room.roomTypeId}</td>
-              <td>{room.roomType}</td>
-              <td>{room.area}</td>
-              <td>{room.bed}</td>
-              <td>{room.max}</td>
-              <td>{room.price}</td>
-              <td>{room.surcharge}</td>
-              {/* <td>{room.rooms}</td> */}
-              <td>{room.note}</td>
-              <td className="actions">
-                <button className="edit-btn" onClick={() => onEdit(room)}>
-                  <Pencil size={16} />
-                </button>
-                <button className="delete-btn" onClick={() => onDelete(room)}>
-                  <X size={16} />
-                </button>
-              </td>
+          {filteredData.length > 0 ? (
+            filteredData.slice().map((room) => (
+              <tr key={room.id}>
+                <td>{room.roomTypeId}</td>
+                <td>{room.roomType}</td>
+                <td>{room.area}</td>
+                <td>{room.bed}</td>
+                <td>{room.max}</td>
+                <td>{room.price}</td>
+                <td>{room.surcharge}</td>
+                {/* <td>{room.rooms}</td> */}
+                <td>{room.note}</td>
+                <td className="actions">
+                  <button className="edit-btn" onClick={() => onEdit(room)}>
+                    <Pencil size={16} />
+                  </button>
+                  <button className="delete-btn" onClick={() => onDelete(room)}>
+                    <X size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={9} className="no-data">No matching rooms found.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

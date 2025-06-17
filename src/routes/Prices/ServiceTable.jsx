@@ -73,21 +73,27 @@ export default function ServiceTable({ search, onEdit, onDelete }) {
           </tr>
         </thead>
         <tbody>
-          {filteredData.slice().map((service) => (
-            <tr key={service.id}>
-              <td>{service.serviceId}</td>
-              <td>{service.name}</td>
-              <td>{service.price}</td>
-              <td className="actions">
-                <button className="edit-btn" onClick={() => onEdit(service)}>
-                  <Pencil size={16} />
-                </button>
-                <button className="delete-btn" onClick={() => onDelete(service)}>
-                  <X size={16} />
-                </button>
-              </td>
+          {filteredData.length > 0 ? (
+            filteredData.slice().map((service) => (
+              <tr key={service.id}>
+                <td>{service.serviceId}</td>
+                <td>{service.name}</td>
+                <td>{service.price}</td>
+                <td className="actions">
+                  <button className="edit-btn" onClick={() => onEdit(service)}>
+                    <Pencil size={16} />
+                  </button>
+                  <button className="delete-btn" onClick={() => onDelete(service)}>
+                    <X size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={9} className="no-data">No matching rooms found.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
