@@ -1,10 +1,13 @@
+
 .page-container {
     display: flex;
-    color: #F5F6FA
+    height: 100vh;
 }
 
 .main-content {
-    flex: 1;
-    margin-left: 18%;
+    flex-grow: 1;
     padding: 20px;
+    min-width: 0; 
+    height: 100vh;
+    overflow: hidden;
 }
