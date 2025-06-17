@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {X} from "lucide-react";
 import CreateService from './CreateService'; // Adjust the import path as needed
 
@@ -10,6 +10,11 @@ export default function ServicePage() {
     { requestId: "1111", roomNumber: "A020", service: "hi hi", amount: 1, note: "", status: "Awaiting" },
     // ... more services
   ]);
+
+  // State for the search input
+  const [search, setSearch] = useState("");
+  // State for the debounced search input
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const handleCreateServiceClick = () => {
     setShowCreateServiceModal(true);
@@ -33,11 +38,48 @@ export default function ServicePage() {
     );
   };
 
+  // Debounce effect for search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms debounce time
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
+
+  // Filtered services based on debounced search
+  const filteredServices = useMemo(() => {
+    if (!debouncedSearch) {
+      return services;
+    }
+    const lowerCaseSearch = debouncedSearch.toLowerCase();
+    return services.filter(service =>
+      service.requestId.toLowerCase().includes(lowerCaseSearch) ||
+      service.roomNumber.toLowerCase().includes(lowerCaseSearch) ||
+      service.service.toLowerCase().includes(lowerCaseSearch) ||
+      service.note.toLowerCase().includes(lowerCaseSearch)
+    );
+  }, [services, debouncedSearch]);
+
+
   return (
     <div>
-      {/* ... existing layout from your image, including the header and sidebar */}
-
-      <div className="flex justify-end pt-4 pr-4"> {/* Adjust styling as needed */}
+      <div className="flex justify-between">
+        <div>
+          <p className="name">Service</p>
+          <p className="labeldash">_________</p>
+        </div>
+      <div className="flex justify-end items-center pt-4 pr-4 gap-x-4"> {/* Adjusted to allow space for search */}
+        {/* Search Input */}
+        <input
+            type="text"
+            placeholder="Search by Service ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        />
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
           onClick={handleCreateServiceClick}
@@ -45,46 +87,57 @@ export default function ServicePage() {
           Create service
         </button>
       </div>
-
-      {/* Service Table (render your services state here) */}
+    </div>
+      {/* Service Table */}
       <div className="p-4">
-        <table className="min-w-full bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full bg-blue-200 rounded-lg text-black">
           <thead>
             <tr>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Request ID</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Room number</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Service</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Note</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100"></th> {/* For the X button */}
+              <th className="px-4 py-2 text-left">Request ID</th>
+              <th className="px-4 py-2 text-left">Room number</th>
+              <th className="px-4 py-2 text-left">Service</th>
+              <th className="px-4 py-2 text-left">Amount</th>
+              <th className="px-4 py-2 text-left">Note</th>
+              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2 text-left">Actions</th> {/* Column for the X button */}
             </tr>
           </thead>
           <tbody>
-            {services.map((service, index) => (
-              <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap">{service.requestId}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{service.roomNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{service.service}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{service.amount}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{service.note}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => handleStatusChange(index)}
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
-                      service.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                    }`}
-                  >
-                    {service.status}
-                  </button>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-red-600 hover:text-red-900">
-                    <X size={20} />
-                  </button>
+            {filteredServices.length > 0 ? (
+              filteredServices.map((service, index) => (
+                <tr key={index} className="bg-white border-b last:border-b-0">
+                  <td className="px-4 py-2">{service.requestId}</td>
+                  <td className="px-4 py-2">{service.roomNumber}</td>
+                  <td className="px-4 py-2">{service.service}</td>
+                  <td className="px-4 py-2">{service.amount}</td>
+                  <td className="px-4 py-2">{service.note || "-"}</td> {/* Display "-" if note is empty */}
+                  <td className="px-4 py-2">
+                    {/* Using the button logic for status change */}
+                    <button
+                      onClick={() => handleStatusChange(index)}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
+                        service.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      {service.status}
+                    </button>
+                    {/* If you prefer to use the StatusBadge component for display only, and a separate button for action: */}
+                    {/* <StatusBadge status={service.status} /> */}
+                  </td>
+                  <td className="px-4 py-2">
+                    <button className="text-red-600 hover:text-red-900">
+                      <X size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="px-4 py-3 text-center bg-white text-gray-500">
+                  No matching services found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

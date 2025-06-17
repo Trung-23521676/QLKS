@@ -53,21 +53,20 @@ const Reservations = () => {
   return (
     <>
       <div>
-        <p className="label">Reservations</p>
+        <p className="name">Reservations</p>
         <p className="labeldash">_______________</p>
       </div>
-      {/* Unified Search Layout */}
+      {/* Search Layout */}
       <div className="flex justify-end text-black mb-4">
         <div className="relative w-full max-w-xs">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           <input
             type="text"
             name="search"
             id="search"
-            placeholder="Search..."
+            placeholder="Search by guest or booking ID"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-black rounded-md text-sm bg-white focus:outline-none focus:ring-0"
+            className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import "./FrontDesk.css"; // Import the CSS file
+import CreateBookingModal from "./CreateBooking"
 
 // Styles for the split-tone booking bars
 const bookingBarStyles = {
@@ -116,6 +117,8 @@ export default function FrontDeskHeader() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
+  const [isCreateBookingModalOpen, setIsCreateBookingModalOpen] = useState(false); // New state for modal visibility
+
 
   const bookingGridScrollRef = useRef(null);
   const isInitialMount = useRef(true);
@@ -259,7 +262,11 @@ export default function FrontDeskHeader() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
+      <div>
+        <p className="name">Front Desk</p>
+        <p className="labeldash">_____________</p>
+      </div>
+      <div className="flex justify-between items-center flex-wrap gap-4 mb-4 mt-2">
         <div className="flex gap-3 flex-wrap">
           {Object.entries(legendStyles).map(([status, classes]) => (
             <span key={status} className={`px-4 py-1.5 text-xs font-semibold rounded-full border-2 ${classes}`}>
@@ -270,12 +277,15 @@ export default function FrontDeskHeader() {
         <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Search by service ID"
+            placeholder="Search by name or room number"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-48 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+            className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
           />
-          <button className="px-5 py-2 text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-700 rounded-full shadow-md">
+          <button
+            onClick={() => setIsCreateBookingModalOpen(true)} // Open modal on click
+            className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+          >
             create booking
           </button>
         </div>
@@ -376,6 +386,12 @@ export default function FrontDeskHeader() {
           </div>
         </div>
       </div>
+
+      {/* Create Booking Modal */}
+      <CreateBookingModal
+        isOpen={isCreateBookingModalOpen}
+        onClose={() => setIsCreateBookingModalOpen(false)}
+      />
     </div>
   );
 }

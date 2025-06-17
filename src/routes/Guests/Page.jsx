@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
 import "./Button.css";
 
 const guests = [
@@ -52,10 +51,7 @@ function StatusBadge({ status }) {
 const Guests = () => {
   const [showNational, setShowNational] = useState(true);
   const [showInternational, setShowInternational] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const toggleNational = () => setShowNational((prev) => !prev);
-  const toggleInternational = () => setShowInternational((prev) => !prev);
+  const [search, setSearch] = useState("");
 
   const filteredGuests = guests.filter((guest) => {
     const matchesType =
@@ -64,7 +60,7 @@ const Guests = () => {
 
     const matchesSearch = [guest.name, guest.id, guest.phone, guest.email]
       .some((field) =>
-        field.toLowerCase().includes(searchTerm.toLowerCase())
+        field.toLowerCase().includes(search.toLowerCase())
       );
 
     return matchesType && matchesSearch;
@@ -73,11 +69,10 @@ const Guests = () => {
   return (
     <>
       <div>
-        <p className="label">Guests</p>
+        <p className="name">Guests</p>
         <p className="labeldash">________</p>
       </div>
-
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 mt-2">
         <div className="flex space-x-2">
           <button
             className={`px-6 py-2 rounded-full transition font-semibold ${
@@ -85,7 +80,7 @@ const Guests = () => {
                 ? "bg-blue-600 text-white"
                 : "border border-blue-600 text-blue-600 bg-transparent"
             }`}
-            onClick={toggleNational}
+            onClick={() => setShowNational((prev) => !prev)}
           >
             National
           </button>
@@ -95,23 +90,21 @@ const Guests = () => {
                 ? "bg-blue-600 text-white"
                 : "border border-blue-600 text-blue-600 bg-transparent"
             }`}
-            onClick={toggleInternational}
+            onClick={() => setShowInternational((prev) => !prev)}
           >
             International
           </button>
         </div>
-        {/* Unified Search Layout */}
+
         <div className="flex justify-end text-black w-full max-w-xs">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            {/* Search Input */}
             <input
               type="text"
-              name="search"
-              id="search"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-black rounded-md text-sm bg-white focus:outline-none focus:ring-0"
+              placeholder="Search by name, ID, phone, email"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
         </div>
@@ -133,11 +126,9 @@ const Guests = () => {
               filteredGuests.map((guest, idx) => (
                 <tr key={idx} className="bg-white border-b last:border-b-0">
                   <td className="flex items-center px-4 py-2">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block"></span>
+                    <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block" />
                     <span>
-                      <div className="font-medium">
-                        {guest.name.split(" ")[0]}
-                      </div>
+                      <div className="font-medium">{guest.name.split(" ")[0]}</div>
                       <div className="text-xs text-gray-500">
                         {guest.name.split(" ").slice(1).join(" ")}
                       </div>
@@ -162,7 +153,7 @@ const Guests = () => {
         </table>
       </div>
     </>
-     );
+  );
 };
 
 export default Guests;

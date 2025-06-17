@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 const rooms = [
   { number: "A045", type: "Double bed", floor: "Floor - 1", bookingId: "", status: "Available" },
@@ -9,13 +9,13 @@ const rooms = [
   { number: "C015", type: "Single bed", floor: "Floor - 1", bookingId: "1111", status: "Reserved" },
 ];
 
-const statusColors: Record<string, string> = {
+const statusColors = {
   Available: "bg-blue-100 text-blue-600",
   Booked: "bg-red-100 text-red-600",
   Reserved: "bg-green-100 text-green-600",
 };
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }) {
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
       {status}
@@ -26,16 +26,16 @@ function StatusBadge({ status }: { status: string }) {
 export default function Rooms() {
   const [search, setSearch] = useState("");
   const [showFilter, setShowFilter] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedFloors, setSelectedFloors] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedFloors, setSelectedFloors] = useState([]);
 
-  const handleTypeChange = (type: string) => {
+  const handleTypeChange = (type) => {
     setSelectedTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
-  const handleFloorChange = (floor: string) => {
+  const handleFloorChange = (floor) => {
     setSelectedFloors((prev) =>
       prev.includes(floor) ? prev.filter((f) => f !== floor) : [...prev, floor]
     );
@@ -57,25 +57,27 @@ export default function Rooms() {
 
   return (
     <>
+      <div>
+          <p className="name">Prices</p>
+          <p className="labeldash">__________</p>
+      </div>
       <div className="flex items-center justify-between mb-4 relative">
         <button onClick={() => setShowFilter(!showFilter)}>
           <SlidersHorizontal className="text-gray-900" size={24} />
         </button>
-
+        
         <div className="flex-1 flex justify-end text-black">
           <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search by Request ID, Room, Service, or Note"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-black rounded-md text-sm bg-white focus:outline-none focus:ring-0"
+              className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
           </div>
         </div>
 
-        {/* Filters */}
         {showFilter && (
           <div className="absolute top-10 left-0 z-10 w-64 p-4 bg-white border rounded-lg shadow-lg text-sm space-y-4 text-black">
             <div>
@@ -110,26 +112,15 @@ export default function Rooms() {
               </div>
             </div>
 
-            {/* Facility */}
             <div>
               <p className="font-semibold mb-1">Room facility</p>
               <div className="flex gap-2 flex-wrap">
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" />
-                  AC
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" />
-                  Shower
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" />
-                  TV
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" />
-                  Bathtub
-                </label>
+                {["AC", "Shower", "TV", "Bathtub"].map((facility) => (
+                  <label key={facility} className="flex items-center gap-1">
+                    <input type="checkbox" />
+                    {facility}
+                  </label>
+                ))}
               </div>
             </div>
           </div>
