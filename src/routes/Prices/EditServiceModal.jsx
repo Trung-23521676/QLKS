@@ -1,35 +1,35 @@
 import React, { useEffect, useState } from "react";
 import "./CreateServiceModal.css";
 import { X } from "lucide-react";
+import { updateService } from "../../API/PricesAPI";
 
-export default function EditServiceModal({ service, onClose }) {
+export default function EditServiceModal({ service, onClose, onSuccess }) {
   const [serviceId, setServiceId] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
 
   useEffect(() => {
   if (service) {
-    setServiceId(service.serviceId || "");
-    setName(service.name || "");
-    setPrice(service.price || "");
+    setServiceId(service.service_id || "");
+    setName(service.service_name || "");
+    setPrice(service.price_service || "");
   }
 }, [service]);
 
   const handleSave = async () => {
-    // // Gửi dữ liệu cập nhật lên backend hoặc lưu vào state (nếu dùng local)
-    // const updatedRoom = {
-    //   ...room,
-    //   roomTypeId,
-    //   roomType,
-    //   area: Number(area),
-    //   bed,
-    //   max: Number(max),
-    //   price: Number(price),
-    //   surcharge: Number(surcharge),
-    // };
-    console.log("Saving service");
-    // // Đóng modal sau khi lưu
-    // onClose();
+    const updatedService = {
+      service_name: name,
+      price_service: parseFloat(price),
+    };
+
+    try {
+      await updateService(serviceId, updatedService);
+      console.log("Service updated");
+      onClose();
+      onSuccess(); // gọi lại fetch nếu cần
+    } catch (error) {
+      console.error("Lỗi khi cập nhật service:", error);
+    }
   };
 
   return (
@@ -55,6 +55,7 @@ export default function EditServiceModal({ service, onClose }) {
                 className="input"
                 value={serviceId}
                 onChange={e => setServiceId(e.target.value)}
+                readOnly
                 />
             </div>
 

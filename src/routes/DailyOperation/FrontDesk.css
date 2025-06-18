@@ -1,0 +1,32 @@
+/* Styles for the main scrollable booking grid container */
+.booking-grid-scroll-container {
+  flex-grow: 1; /* Allows it to take up available vertical space */
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: hidden; /* Hides vertical scrollbar */
+}
+
+/* Styles for the sticky day headers */
+.sticky-day-header {
+  position: sticky;
+  top: 0;
+}
+
+/* Styles for individual day cells in the header */
+.day-cell {
+  min-width: 80px; /* Ensures a fixed width for each day cell */
+}
+
+/* Container for the vertical grid lines */
+.grid-lines-container {
+  top: 48px; /* Offset by the height of the sticky day header */
+}
+
+/* Individual vertical grid lines */
+.day-grid-line {
+  min-width: 80px; /* Ensures consistent width with day cells */
+}
+
+/* Container for the booking bars */
+.booking-bars-container {
+  top: 48px; /* Offset by the height of the sticky day header */
+}

@@ -1,44 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import "./Rooms.css";
+import { fetchRooms } from "../../API/RoomAPI";
+import { fetchRoomTypes } from "../../API/PricesAPI";
 
 export default function Rooms() {
-  const getFakeRooms = () => [
-    { number: "A045", type: "Double bed", floor: "1", bookingId: "", status: "Available" },
-    { number: "A020", type: "Single bed", floor: "2", bookingId: "1111", status: "Booked" },
-    { number: "B003", type: "VIP", floor: "3", bookingId: "1111", status: "Reserved" },
-    { number: "B040", type: "VIP", floor: "1", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-    { number: "C015", type: "Single bed", floor: "2", bookingId: "1111", status: "Reserved" },
-  ];
-
-  const roomTypes = ["Single bed", "Double bed", "VIP", "Deluxe", "Suite", "King", "Queen"];
-
-  const StatusBadge = ({ status }) => {
-    const className = `status-badge ${
-      status === "Available"
-        ? "status-available"
-        : status === "Booked"
-        ? "status-booked"
-        : "status-reserved"
-    }`;
-    return <span className={className}>{status}</span>;
-  };
-
   const [search, setSearch] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedFloors, setSelectedFloors] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [roomTypes, setRoomTypes] = useState([]);
 
   const filterRef = useRef(null);
   const buttonRef = useRef(null);
@@ -56,7 +28,16 @@ export default function Rooms() {
   };
 
   useEffect(() => {
-    setRooms(getFakeRooms());
+    const loadData = async () => {
+      try {
+        const [roomsData, typesData] = await Promise.all([fetchRooms(), fetchRoomTypes()]);
+        setRooms(roomsData);
+        setRoomTypes(typesData.map(t => t.room_type_id)); // e.g. "Single bed", "Double bed"
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu phòng:", error);
+      }
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -76,16 +57,20 @@ export default function Rooms() {
   }, []);
 
   const filteredRooms = rooms.filter((room) => {
-  const matchesSearch = room.number.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = room.room_id.toLowerCase().includes(search.toLowerCase());
+    const matchesType =
+      selectedTypes.length === 0 || selectedTypes.includes(room.room_type_id);
+    const matchesFloor =
+      selectedFloors.length === 0 || selectedFloors.includes(`Floor - ${room.room_floor}`);
+    return matchesSearch && matchesType && matchesFloor;
+  });
 
-  const matchesType =
-    selectedTypes.length === 0 || selectedTypes.includes(room.type);
-
-  const matchesFloor =
-    selectedFloors.length === 0 || selectedFloors.includes(`Floor - ${room.floor}`);
-
-  return matchesSearch && matchesType && matchesFloor;
-});
+  const StatusBadge = ({ status }) => {
+    const className = `status-badge ${
+      status === "Available" ? "status-available" : "status-booked"
+    }`;
+    return <span className={className}>{status}</span>;
+  };
 
   return (
     <div className="rooms-container">
@@ -93,11 +78,7 @@ export default function Rooms() {
       <p className="labeldash">__________</p>
 
       <div className="labelsearch">
-        <button
-          className="filter"
-          ref={buttonRef}
-          onClick={() => setShowFilter(!showFilter)}
-        >
+        <button className="filter" ref={buttonRef} onClick={() => setShowFilter(!showFilter)}>
           <SlidersHorizontal size={24} />
         </button>
 
@@ -123,7 +104,7 @@ export default function Rooms() {
             </div>
 
             <div>
-              <p className="filter-title">Bed type</p>
+              <p className="filter-title">Room type</p>
               <div className="filter-options">
                 {roomTypes.map((type) => (
                   <label key={type} className="checkbox-label">
@@ -165,21 +146,19 @@ export default function Rooms() {
           <tbody>
             {filteredRooms.length > 0 ? (
               filteredRooms.map((room, index) => (
-                <tr key={`${room.number}-${index}`}>
-                  <td>{room.number}</td>
-                  <td>{room.type}</td>
-                  <td>{room.floor}</td>
-                  <td>{room.bookingId || "-"}</td>
+                <tr key={`${room.room_id}-${index}`}>
+                  <td>{room.room_id}</td>
+                  <td>{room.room_type_id}</td>
+                  <td>{room.room_floor}</td>
+                  <td>{room.booking_id || ""}</td>
                   <td>
-                    <StatusBadge status={room.status} />
+                    <StatusBadge status={room.is_booked ? "Booked" : "Available"} />
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="no-data">
-                  No matching rooms found.
-                </td>
+                <td colSpan={5} className="no-data">No matching rooms found.</td>
               </tr>
             )}
           </tbody>

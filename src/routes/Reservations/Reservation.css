@@ -22,23 +22,21 @@
     line-height: normal;
     margin-top: -14px;
 }
-.room-header {
+.rheader {
     display: flex;
-    justify-content: space-between;
+    justify-content: right;
     margin-bottom: 1rem;
 }
 
-.filter {
-    color: #6C757D;
-    cursor: pointer;
-}
-
-.search-input {
+.rsearch-input {
     display: flex;
     width: 400px;
     padding: 8px 16px;
     justify-content: center;
     align-items: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    margin-right: 16px;
     gap: 8px;
     border-radius: 30px;
     background: #FFF;
@@ -49,51 +47,6 @@
     font-style: normal;
     font-weight: 400;
     line-height: 150%;
-    margin-right: 16px;
-}
-
-.filter-panel {
-    position: absolute;
-    top: 2.5rem;
-    left: 0;
-    z-index: 10;
-    width: 16rem;
-    padding: 1rem;
-    border-radius: 16px;
-    background: #FFF;
-    box-shadow: 8px 3px 22px 10px rgba(150, 150, 150, 0.11);
-    font-size: 0.875rem;
-    color: #000;
-    margin-left: 25%;
-    margin-top: 5%;
-    max-height: 50%;
-}
-
-.filter-title {
-    color: var(--Grey-Grey-500, #667085);
-    font-family: Inter;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 150%; /* 18px */
-}
-
-.filter-options {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: #2B2F38;
-    font-family: Inter;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 150%; /* 24px */   
 }
 
 .rtable-container {
@@ -141,6 +94,14 @@
   border-bottom: 1px solid #ddd;
 }
 
+.guest {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    align-items: center;
+    font-weight: bold   ;
+}
+
 /* Status Badges */
 .status-badge {
     padding: 2px 8px;
@@ -149,7 +110,7 @@
     border-radius: 16px;
 }
 
-.status-available {
+.status-confirmed {
     background: var(--Primary-Primary-50, #E8F1FD);
     color: var(--Primary-Primary-400, #448DF2);
     text-align: center;
@@ -160,7 +121,7 @@
     line-height: 150%; 
 }
 
-.status-booked {
+.status-declined {
     background: var(--Error-Error-50, #FEECEB);
     color: var(--Error-Error-400, #F36960);
     text-align: center;
@@ -171,7 +132,7 @@
     line-height: 150%; 
 }
 
-.status-reserved {
+.status-awaiting {
     background: var(--Success-Success-50, #E7F8F0);
     color: var(--Success-Success-400, #41C588);
     text-align: center;

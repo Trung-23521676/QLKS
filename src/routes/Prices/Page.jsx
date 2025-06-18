@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import "./prices.css";
 import RoomTable from "./RoomTable";
@@ -9,6 +9,9 @@ import DeleteRoomModal from "./DeleteRoomModal";
 import CreateServiceModal from "./CreateServiceModal";
 import EditServiceModal from "./EditServiceModal";
 import DeleteServiceModal from "./DeleteServiceModal";
+import { fetchRoomTypes } from "../../API/PricesAPI";
+import { fetchServices } from "../../API/PricesAPI";
+
 
 export default function Prices() {
   const [search1, setSearch1] = useState("");
@@ -21,6 +24,40 @@ export default function Prices() {
   const [isEditModalOpen2, setIsEditModalOpen2] = useState(false);
   const [isDeleteModalOpen2, setIsDeleteModalOpen2] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const rooms = await fetchRoomTypes();
+      setRooms(rooms);
+      const services = await fetchServices();
+      setServices(services);
+    } catch (err) {
+      // đã được log sẵn bên service
+    }
+  };
+  fetchData();
+}, []);
+
+const refreshRoomTypes = async () => {
+  try {
+    const rooms = await fetchRoomTypes();
+    setRooms(rooms);
+  } catch (err) {
+    // đã log
+  }
+};
+
+const refreshServices = async () => {
+  try {
+    const services = await fetchServices();
+    setServices(services);
+  } catch (err) {
+    // đã log
+  }
+};
 
   const handleEditRoom = (room) => {
     setSelectedRoom(room);
@@ -41,6 +78,8 @@ export default function Prices() {
     setSelectedService(service);
     setIsDeleteModalOpen2(true);
   }
+
+
 
   return (
     <div className="prices-container">
@@ -68,17 +107,18 @@ export default function Prices() {
               Create room type
           </button>
 
-          <CreateRoomModal isOpen={isModalOpen1} onClose={() => setIsModalOpen1(false)} />
+          <CreateRoomModal isOpen={isModalOpen1} onClose={() => setIsModalOpen1(false) } onSuccess={refreshRoomTypes}/>
         </div>
       </div>
 
       <div>
-          <RoomTable search={search1} onEdit={handleEditRoom} onDelete={handleDeleteRoom}/>
+          <RoomTable rooms={rooms} search={search1} onEdit={handleEditRoom} onDelete={handleDeleteRoom} onSuccess={refreshRoomTypes}/>
 
           {isEditModalOpen1 && (
             <EditRoomModal
               room={selectedRoom}
               onClose={() => setIsEditModalOpen1(false)}
+             onSuccess={refreshRoomTypes}
             />
           )}
 
@@ -86,6 +126,7 @@ export default function Prices() {
             <DeleteRoomModal
               room={selectedRoom}
               onClose={() => setIsDeleteModalOpen1(false)}
+              onSuccess={refreshRoomTypes}
             />
           )}
       </div>
@@ -110,17 +151,18 @@ export default function Prices() {
             Create service
           </button>
 
-          <CreateServiceModal isOpen={isModalOpen2} onClose={() => setIsModalOpen2(false)} />
+          <CreateServiceModal onSuccess={refreshServices} isOpen={isModalOpen2} onClose={() => setIsModalOpen2(false)} />
         </div>
       </div>
 
       <div>
-        <ServiceTable search={search2} onEdit={handleEditService} onDelete={handleDeleteService}/>
+        <ServiceTable  onSuccess={refreshServices} services={services} search={search2} onEdit={handleEditService} onDelete={handleDeleteService}/>
 
         {isEditModalOpen2 && (
             <EditServiceModal
               service={selectedService}
               onClose={() => setIsEditModalOpen2(false)}
+              onSuccess={refreshServices}
             />
           )}
 
@@ -128,6 +170,7 @@ export default function Prices() {
             <DeleteServiceModal
               service={selectedService}
               onClose={() => setIsDeleteModalOpen2(false)}
+              onSuccess={refreshServices}
             />
           )}
       </div>

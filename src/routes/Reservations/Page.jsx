@@ -1,116 +1,223 @@
-import { Search } from "lucide-react"
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import "./Reservation.css"
 
-const guests = [
-  {
-    name: "Ms Zzzzzzzz",
+export default function Reservations() {
+
+  const navigate = useNavigate();
+
+  const getFakeReservations = () => [
+    {
+    name: "Zzzzzzzz",
     bookingId: "1111",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
     status: "Confirmed",
+    avatar: "https://i.pravatar.cc/150?img=1",
   },
   {
-    name: "Ms Zzzzzzzz",
+    name: "Zzzzzzzz",
     bookingId: "1111",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
     status: "Declined",
+    avatar: "https://i.pravatar.cc/150?img=2",
   },
   {
-    name: "Ms Zzzzzzzz",
+    name: "Zzzzzzzz",
     bookingId: "1111",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
     status: "Declined",
+    avatar: "https://i.pravatar.cc/150?img=3",
   },
   {
-    name: "Ms Zzzzzzzz",
+    name: "Zzzzzzzz",
     bookingId: "1111",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
     status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=4",
   },
   {
-    name: "Ms Zzzzzzzz",
+    name: "Zzzzzzzz",
     bookingId: "1111",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
     status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
   },
-];
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    name: "Zzzzzzzz",
+    bookingId: "1111",
+    checkIn: "11/11/2025",
+    checkOut: "11/11/2025",
+    roomType: "A",
+    status: "Awaiting",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  ];
 
-function StatusBadge({ status }) {
-  let color = "";
-  if (status === "Confirmed") color = "bg-blue-100 text-blue-600";
-  else if (status === "Declined") color = "bg-red-100 text-red-500";
-  else color = "bg-green-100 text-green-600";
+  const StatusBadge = ({ status }) => {
+    const className = `status-badge ${
+      status === "Confirmed"
+        ? "status-confirmed"
+        : status === "Declined"
+        ? "status-declined"
+        : "status-awaiting"
+    }`;
+    return <span className={className}>{status}</span>;
+  };
+  
+  const [search, setSearch] = useState("");
+  const [reservation, setReservation] = useState([]);
+
+  useEffect(() => {
+    setReservation(getFakeReservations());
+  }, []);
+
+  const filteredReservation = reservation.filter((reservation) => {
+  const query = search.toLowerCase();
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${color}`}>
-      {status}
-    </span>
+    reservation.name.toLowerCase().includes(query) ||
+    reservation.bookingId.toLowerCase().includes(query)
+  );
+});
+
+  return (
+    <div className="rooms-container">
+      <p className="name">Reservations</p>
+      <p className="labeldash">__________</p>
+
+        <div className="rheader">
+          <input
+            type="text"
+            placeholder="Search by name or booking ID"
+            className="rsearch-input"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+      <div className="rtable-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Booking ID</th>
+              <th>Check in</th>
+              <th>Check out</th>
+              <th>Room type</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredReservation.length > 0 ? (
+              filteredReservation.map((reservation, index) => (
+                <tr key={`${reservation.bookingId}-${index}`}>
+                  <td className="guest">
+                    <img
+                      src={reservation.avatar}
+                      alt={reservation.name}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    {reservation.name}</td>
+                  <td>{reservation.bookingId}</td>
+                  <td>{reservation.checkIn}</td>
+                  <td>{reservation.checkOut}</td>
+                  <td>{reservation.roomType}</td>
+                  <td>
+                    <StatusBadge status={reservation.status} />
+                  </td>
+                  <td>
+                    <button 
+                      onClick={() => navigate(`/Reservations/${reservation.bookingId}`)}
+                      style={{cursor: 'pointer'}}>
+                      <ChevronRight size={16}/>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} className="no-data">
+                  No matching rooms found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
-
-const Reservations =() => {
-    return (
-        <>
-        <div className="relative z-10 flex h-[60px] items-end justify-end bg-white px-4 transition-colors dark:bg-slate-50">
-                    <div className="input">
-                            <Search
-                                size={20}
-                                className="text-slate-300"
-                                
-                            />
-                            <input
-                                type="text"
-                                name="search"
-                                id="search"
-                                placeholder="Search..."
-                                className="w-full bg-transparent text-slate-400 outline-0 placeholder:text-slate-300 dark:text-slate-900"
-                            />
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                <table className="min-w-full bg-blue-50 rounded-lg">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-2 text-left">Guest</th>
-                      <th className="px-4 py-2 text-left">Booking ID</th>
-                      <th className="px-4 py-2 text-left">Check in</th>
-                      <th className="px-4 py-2 text-left">Check out</th>
-                      <th className="px-4 py-2 text-left">Room type</th>
-                      <th className="px-4 py-2 text-left">Status</th>
-                      <th className="px-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guests.map((guest, idx) => (
-                      <tr key={idx} className="bg-white border-b last:border-b-0">
-                        <td className="flex items-center px-4 py-2">
-                          <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block"></span>
-                          <span>
-                            <div className="font-medium">Ms</div>
-                            <div className="text-xs text-gray-500">{guest.name}</div>
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">{guest.bookingId}</td>
-                        <td className="px-4 py-2">{guest.checkIn}</td>
-                        <td className="px-4 py-2">{guest.checkOut}</td>
-                        <td className="px-4 py-2">{guest.roomType}</td>
-                        <td className="px-4 py-2">
-                          <StatusBadge status={guest.status} />
-                        </td>
-                        <td className="px-2 py-2 text-gray-400">&gt;</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-        </>
-    )}
-
-export default Reservations

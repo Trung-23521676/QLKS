@@ -10,8 +10,16 @@ export const Sidebar = forwardRef((_, ref) => {
         <aside ref={ref} className="sidebar">
 
         <div className="sidebar-logo">
-            <img src={IMG} alt="Logo" className="logo-light" />
-            {/* <img src={IMG} alt="Logo" className="logo-dark" /> */}
+            {/* Logo */}
+                <div className="relative w-20 h-20 mr-2">
+                  <div className="absolute inset-0 bg-[#14274a] rounded-br-3xl rounded-tl-3xl"></div>
+                  <div className="absolute inset-[3px] bg-white rounded-br-3xl rounded-tl-3xl flex items-center justify-center">
+                    <div className="text-[#14274a] font-serif text-xs leading-tight text-center font-semibold" >
+                      <div>SERENITY</div>
+                      <div>HOTEL</div>
+                    </div>
+                  </div>
+                </div>
         </div>
 
         <div className="sidebar-content">

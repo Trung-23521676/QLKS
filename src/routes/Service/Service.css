@@ -149,7 +149,7 @@
     border-radius: 16px;
 }
 
-.status-available {
+.status-confirmed {
     background: var(--Primary-Primary-50, #E8F1FD);
     color: var(--Primary-Primary-400, #448DF2);
     text-align: center;
@@ -160,18 +160,7 @@
     line-height: 150%; 
 }
 
-.status-booked {
-    background: var(--Error-Error-50, #FEECEB);
-    color: var(--Error-Error-400, #F36960);
-    text-align: center;
-    font-family: Inter;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 150%; 
-}
-
-.status-reserved {
+.status-awaiting {
     background: var(--Success-Success-50, #E7F8F0);
     color: var(--Success-Success-400, #41C588);
     text-align: center;
@@ -180,4 +169,19 @@
     font-style: normal;
     font-weight: 400;
     line-height: 150%; 
+}
+.create-button {
+    width: 187px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 30px;
+    border: 1px solid #005F94;
+    background: #0077B6;
+    color: #FFF;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    cursor: pointer;
 }
