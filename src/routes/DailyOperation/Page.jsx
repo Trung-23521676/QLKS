@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import "./FrontDesk.css"; // Import the CSS file
-import CreateBookingModal from "./CreateBooking"
+import CreateBookingModal from "./CreateBooking";
+import BookingDetail from "./BookingDetail.jsx"; // 1. Import the new component
 
 // Styles for the split-tone booking bars
 const bookingBarStyles = {
@@ -117,8 +118,8 @@ export default function FrontDeskHeader() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
-  const [isCreateBookingModalOpen, setIsCreateBookingModalOpen] = useState(false); // New state for modal visibility
-
+  const [isCreateBookingModalOpen, setIsCreateBookingModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null); // 2. Add state for the selected booking
 
   const bookingGridScrollRef = useRef(null);
   const isInitialMount = useRef(true);
@@ -261,11 +262,12 @@ export default function FrontDeskHeader() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <>
+    <div className="flex flex-col h-full p-3">
       <div>
         <p className="name">Front Desk</p>
-        <p className="labeldash">_____________</p>
-      </div>
+        <p className="labeldash">___________</p>
+    </div>
       <div className="flex justify-between items-center flex-wrap gap-4 mb-4 mt-2">
         <div className="flex gap-3 flex-wrap">
           {Object.entries(legendStyles).map(([status, classes]) => (
@@ -283,17 +285,15 @@ export default function FrontDeskHeader() {
             className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
           />
           <button
-            onClick={() => setIsCreateBookingModalOpen(true)} // Open modal on click
+            onClick={() => setIsCreateBookingModalOpen(true)}
             className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
           >
-            create booking
+            Create Booking
           </button>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg flex flex-col flex-grow overflow-hidden">
-
-        {/* Fixed Month and Year Header */}
         <div className="p-3 border-b border-slate-200 flex-shrink-0">
           <div className="flex items-center justify-center">
             <button onClick={handlePrevYear} className="p-1 rounded-full text-slate-500 hover:bg-slate-100 transition-colors">
@@ -327,10 +327,8 @@ export default function FrontDeskHeader() {
           </div>
         </div>
 
-        {/* Scrollable Day Grid */}
         <div ref={bookingGridScrollRef} className="booking-grid-scroll-container">
           <div className="relative" style={{ width: `${calendarDates.length * dayCellWidth}px`, height: '100%' }}>
-            {/* Sticky Day Headers */}
             <div className="sticky-day-header z-20 bg-white">
               <div className="flex">
                 {calendarDates.map(date => {
@@ -350,14 +348,12 @@ export default function FrontDeskHeader() {
               </div>
             </div>
 
-            {/* Grid lines */}
             <div className="absolute inset-0 flex grid-lines-container">
               {calendarDates.map((date) => (
                 <div key={date.toISOString()} className="day-grid-line w-20 h-full border-r border-slate-200"></div>
               ))}
             </div>
 
-            {/* Booking Bars */}
             <div className="absolute inset-0 z-10 booking-bars-container">
               {filteredBookings.map(booking => {
                 const isHighlighted = booking.id === highlightedBookingId;
@@ -373,10 +369,12 @@ export default function FrontDeskHeader() {
                 }
 
                 return (
+                  // 3. Add onClick handler to open the detail modal
                   <div
                     key={booking.id}
                     style={style}
-                    className={`absolute overflow-hidden ${roundingClass} ${isHighlighted ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => setSelectedBooking(booking)}
+                    className={`absolute overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 ${roundingClass} ${isHighlighted ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
                   >
                     <BookingBar booking={booking} isStartVisible={isStartVisible} isEndVisible={isEndVisible} />
                   </div>
@@ -387,11 +385,18 @@ export default function FrontDeskHeader() {
         </div>
       </div>
 
-      {/* Create Booking Modal */}
       <CreateBookingModal
         isOpen={isCreateBookingModalOpen}
         onClose={() => setIsCreateBookingModalOpen(false)}
       />
+
+      {/* 4. Render the BookingDetail modal */}
+      <BookingDetail
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        booking={selectedBooking}
+      />
     </div>
+    </>
   );
 }

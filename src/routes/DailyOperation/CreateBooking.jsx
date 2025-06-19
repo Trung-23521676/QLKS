@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const CreateBookingModal = ({ isOpen, onClose }) => {
   // If the modal is not open, don't render anything
