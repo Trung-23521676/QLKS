@@ -8,6 +8,7 @@ import Rooms from "./routes/Rooms/Page"
 import Service from "./routes/Service/Page"
 import Prices from "./routes/Prices/Page"
 import Report from "./routes/Report/Page";
+import Detail from "./routes/Reservations/Detail";
 import { Header } from "./layouts/header";
 
 function App() {
@@ -24,6 +25,10 @@ function App() {
           {
             path: "Reservations",
             element: <Reservations/>,
+          },
+          {
+            path: "Reservations/Detail",
+            element: <Detail/>          
           },
           {
             path: "Guests",
