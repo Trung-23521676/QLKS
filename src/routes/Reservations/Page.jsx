@@ -1,32 +1,78 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import ReservationDetailPopup from "./Detail.jsx"; // Import the detail popup component
 
-const guests = [
+// Expanded mock data with more details for the popup
+const reservationsData = [
   {
-    name: "Ms Zzzzzzzz",
-    bookingId: "1111",
+    id: "1111",
+    time: "14:20 18/06/2025",
+    guestName: "Ms Zzzzzzzz",
+    guestId: "G-12345",
+    guestPhone: "098-765-4321",
+    guestEmail: "zzzzzzzz@example.com",
+    guestAddress: "123 Dreamland Ave, Sleepy Hollow",
+    guestType: "VIP",
     checkIn: "11/11/2025",
     checkOut: "11/11/2025",
     roomType: "A",
-    status: "Confirmed",
+    numberOfRooms: 1,
+    adults: 2,
+    children: 0,
+    reservationNote: "Prefers a quiet room away from the elevator.",
+    paidMethod: "Credit Card",
+    additionalFee: "None",
+    currentStatus: "Confirmed",
+    lastChanged: "10:00 18/06/2025",
+    assignedRoom: 'A-101',
+    assignNote: 'Extra pillows provided.'
   },
   {
-    name: "Mr John Smith",
-    bookingId: "2222",
+    id: "2222",
+    time: "15:30 18/06/2025",
+    guestName: "Mr John Smith",
+    guestId: "G-67890",
+    guestPhone: "091-234-5678",
+    guestEmail: "john.smith@example.com",
+    guestAddress: "456 Oak St, Anytown",
+    guestType: "Regular",
     checkIn: "12/12/2025",
     checkOut: "13/12/2025",
     roomType: "B",
-    status: "Declined",
+    numberOfRooms: 1,
+    adults: 1,
+    children: 0,
+    reservationNote: "",
+    paidMethod: "Cash",
+    additionalFee: "$20 Late Checkout Fee",
+    currentStatus: "Declined",
+    declinedReason: "No rooms available",
+    lastChanged: "11:00 18/06/2025",
   },
   {
-    name: "Mrs Anna Lee",
-    bookingId: "3333",
+    id: "3333",
+    time: "16:45 18/06/2025",
+    guestName: "Mrs Anna Lee",
+    guestId: "G-11223",
+    guestPhone: "095-555-1234",
+    guestEmail: "anna.lee@example.com",
+    guestAddress: "789 Pine Ln, Somewhere",
+    guestType: "Corporate",
     checkIn: "14/12/2025",
     checkOut: "15/12/2025",
     roomType: "C",
-    status: "Awaiting",
+    numberOfRooms: 2,
+    adults: 4,
+    children: 1,
+    reservationNote: "Requires two cribs.",
+    paidMethod: "Bank Transfer",
+    additionalFee: "None",
+    currentStatus: "Awaiting",
+    lastChanged: "12:30 18/06/2025",
+    assignedTo: 'Front Desk Team',
+    recommendedRooms: ['C-301', 'C-302', 'C-304']
   },
 ];
+
 
 function StatusBadge({ status }) {
   let color = "";
@@ -42,19 +88,20 @@ function StatusBadge({ status }) {
 
 const Reservations = () => {
   const [search, setSearch] = useState("");
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
-  const filteredGuests = guests.filter((guest) =>
-    guest.name.toLowerCase().includes(search.toLowerCase()) ||
-    guest.bookingId.includes(search) ||
+  const filteredGuests = reservationsData.filter((guest) =>
+    guest.guestName.toLowerCase().includes(search.toLowerCase()) ||
+    guest.id.includes(search) ||
     guest.roomType.toLowerCase().includes(search.toLowerCase()) ||
-    guest.status.toLowerCase().includes(search.toLowerCase())
+    guest.currentStatus.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <>
       <div>
         <p className="name">Reservations</p>
-        <p className="labeldash">_______________</p>
+        <div className="labeldash">_____________</div>
       </div>
       {/* Search Layout */}
       <div className="flex justify-end text-black mb-4">
@@ -63,55 +110,52 @@ const Reservations = () => {
             type="text"
             name="search"
             id="search"
-            placeholder="Search by guest or booking ID"
+            placeholder="Search by guest, booking ID, etc."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+            className="w-full pl-4 pr-10 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-blue-200 rounded-lg text-black">
-          <thead>
+      <div className="overflow-x-auto bg-white rounded-lg shadow">
+        <table className="min-w-full text-sm text-left text-gray-700">
+          <thead className="min-w-full bg-blue-200 rounded-lg text-black">
             <tr>
-              <th className="px-4 py-2 text-left">Guest</th>
-              <th className="px-4 py-2 text-left">Booking ID</th>
-              <th className="px-4 py-2 text-left">Check in</th>
-              <th className="px-4 py-2 text-left">Check out</th>
-              <th className="px-4 py-2 text-left">Room type</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-2"></th>
+              <th className="px-6 py-3">Guest</th>
+              <th className="px-6 py-3">Booking ID</th>
+              <th className="px-6 py-3">Check in</th>
+              <th className="px-6 py-3">Check out</th>
+              <th className="px-6 py-3">Room type</th>
+              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {filteredGuests.length > 0 ? (
               filteredGuests.map((guest, idx) => (
-                <tr key={idx} className="bg-white border-b last:border-b-0">
-                  <td className="flex items-center px-4 py-2">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 mr-3 inline-block"></span>
-                    <span>
-                      <div className="font-medium">
-                        {guest.name.split(" ")[0]}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {guest.name.split(" ").slice(1).join(" ")}
-                      </div>
-                    </span>
+                <tr 
+                  key={idx} 
+                  className="bg-white border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedReservation(guest)}
+                >
+                  <td className="flex items-center px-6 py-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 flex-shrink-0"></div>
+                    <span className="font-medium text-gray-900">{guest.guestName}</span>
                   </td>
-                  <td className="px-4 py-2">{guest.bookingId}</td>
-                  <td className="px-4 py-2">{guest.checkIn}</td>
-                  <td className="px-4 py-2">{guest.checkOut}</td>
-                  <td className="px-4 py-2">{guest.roomType}</td>
-                  <td className="px-4 py-2">
-                    <StatusBadge status={guest.status} />
+                  <td className="px-6 py-4">{guest.id}</td>
+                  <td className="px-6 py-4">{guest.checkIn}</td>
+                  <td className="px-6 py-4">{guest.checkOut}</td>
+                  <td className="px-6 py-4">{guest.roomType}</td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={guest.currentStatus} />
                   </td>
-                  <td className="px-2 py-2 text-gray-400">&gt;</td>
+                  <td className="px-6 py-4 text-gray-400 text-lg">&gt;</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 bg-white text-gray-500">
+                <td colSpan="7" className="text-center py-8 bg-white text-gray-500">
                   No reservations found.
                 </td>
               </tr>
@@ -119,6 +163,12 @@ const Reservations = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Render the detail popup when a reservation is selected */}
+      <ReservationDetailPopup
+        reservation={selectedReservation}
+        onClose={() => setSelectedReservation(null)}
+      />
     </>
   );
 };

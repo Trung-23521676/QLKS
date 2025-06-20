@@ -1,4 +1,3 @@
-import React from 'react';
 
 const ReservationDetailPopup = ({ reservation, onClose }) => {
   if (!reservation) return null; // Don't render if no reservation data
