@@ -1,4 +1,3 @@
-// src/App.jsx
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 import { ThemeProvider } from "./contexts/theme-context";
 import Layout from "./routes/layout";
@@ -14,29 +13,37 @@ import Service from "./routes/Service/Page";
 import Prices from "./routes/Prices/Page";
 import Report from "./routes/Report/Page";
 
-const checkAuth = () => {
+// Tạo một hàm đơn giản chỉ để kiểm tra xem có token hay không (trả về true/false)
+const isLoggedIn = () => {
   const token = localStorage.getItem("token");
-  if (!token) {
-    return redirect("/Login");
-  }
-  return null;
-}
+  return !!token; // Dấu !! sẽ chuyển đổi giá trị token (hoặc null) thành boolean
+};
+
 function App() {
   const router = createBrowserRouter([
     {
       path: "/Login",
       element: <LoginPage />,
       loader: () => {
-        if (!checkAuth()) {
-          return redirect("/Login");
+        // Nếu ĐÃ đăng nhập, chuyển hướng ra khỏi trang Login
+        if (isLoggedIn()) {
+          return redirect("/");
         }
+        // Nếu chưa đăng nhập, không làm gì cả, cho phép   hiển thị trang Login
         return null;
       }
     },
     {
       path: "/",
       element: <Layout />,
-      loader: checkAuth,
+      // Nếu CHƯA đăng nhập, chuyển hướng đến trang Login
+      loader: () => {
+        if (!isLoggedIn()) {
+          return redirect("/Login");
+        }
+        // Nếu đã đăng nhập, cho phép hiển thị trang chính
+        return null;
+      },
       children: [
         {
           index: true,
