@@ -186,11 +186,11 @@ export default function Reservations() {
               filteredReservation.map((reservation, index) => (
                 <tr key={`${reservation.bookingId}-${index}`}>
                   <td className="guest">
-                    <img
+                    {/* <img
                       src={reservation.avatar}
                       alt={reservation.name}
                       className="w-8 h-8 rounded-full"
-                    />
+                    /> */}
                     {reservation.name}</td>
                   <td>{reservation.bookingId}</td>
                   <td>{reservation.checkIn}</td>

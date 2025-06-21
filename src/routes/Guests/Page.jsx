@@ -273,11 +273,11 @@ export default function Guests() {
               filteredGuests.map((guest, index) => (
                 <tr key={guest.index}>
                   <td className="guest">
-                    <img
+                    {/* <img
                     src={guest.avatar}
                     alt={guest.name}
                     className="w-8 h-8 rounded-full"
-                    />
+                    /> */}
                     {guest.name}
                   </td>
                   <td>{guest.id}</td>
