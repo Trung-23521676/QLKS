@@ -5,7 +5,7 @@ import BookingDetail from "./BookingDetail";
 import { getAllBookings, getBookingById } from "../../API/FrontDeskAPI";
 
 const bookingBarStyles = {
-  "Due in": { head: "bg-yellow-500 text-white", tail: "bg-yellow-100 text-yellow-800" },
+  "Due In": { head: "bg-yellow-500 text-white", tail: "bg-yellow-100 text-yellow-800" },
   "Check in": { head: "bg-green-500 text-white", tail: "bg-green-100 text-green-800" },
   "Due out": { head: "bg-orange-500 text-white", tail: "bg-orange-100 text-orange-800" },
   "Check out": { head: "bg-blue-500 text-white", tail: "bg-blue-100 text-blue-800" },
@@ -41,12 +41,13 @@ function assignRows(bookings) {
 }
 
 const BookingBar = ({ booking, isStartVisible, isEndVisible }) => {
+  console.log(`Booking ID: ${booking.id}, Status từ Database là: '${booking.status}'`);
   const styles = bookingBarStyles[booking.status] || {};
   const headWidth = 80;
   const headClasses = isStartVisible ? 'rounded-l-full' : '';
   const tailClasses = isEndVisible ? 'rounded-r-full' : '';
   return (
-    <div className="w-full h-full flex items-center shadow-sm">
+    <div className="w-full h-full flex items-center shadow-sm rounded-full overflow-hidden">
       <div className={`flex-shrink-0 h-full flex items-center justify-center px-3 ${styles.head} ${headClasses}`} style={{ width: `${headWidth}px` }}>
         <span className="font-semibold text-xs truncate">{booking.guest}</span>
       </div>
@@ -173,10 +174,10 @@ export default function FrontDeskPage() {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 bg-gray-50 font-sans">
+    <div className="flex flex-col h-full  font-sans">
       <div className="flex-shrink-0">
-        <p className="text-3xl font-bold text-gray-800">Front Desk</p>
-        <div className="w-24 h-1 bg-sky-600 mt-2 mb-6"></div>
+        <p className="name  ">Front Desk</p>
+        <div className="labeldash">___________</div>
       </div>
       <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
         <div className="flex gap-3 flex-wrap">

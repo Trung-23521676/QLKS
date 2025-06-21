@@ -1,3 +1,4 @@
+// src/App.jsx
 import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 import { ThemeProvider } from "./contexts/theme-context";
 import Layout from "./routes/layout";
@@ -13,11 +14,20 @@ import Service from "./routes/Service/Page";
 import Prices from "./routes/Prices/Page";
 import Report from "./routes/Report/Page";
 
-// Tạo một hàm đơn giản chỉ để kiểm tra xem có token hay không (trả về true/false)
 const isLoggedIn = () => {
   const token = localStorage.getItem("token");
-  return !!token; // Dấu !! sẽ chuyển đổi giá trị token (hoặc null) thành boolean
+  return !!token;
 };
+
+// Tạo một component đơn giản để làm fallback
+const AppFallback = () => {
+    return (
+        <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
+            <p>Loading Application...</p>
+        </div>
+    );
+};
+
 
 function App() {
   const router = createBrowserRouter([
@@ -25,23 +35,19 @@ function App() {
       path: "/Login",
       element: <LoginPage />,
       loader: () => {
-        // Nếu ĐÃ đăng nhập, chuyển hướng ra khỏi trang Login
         if (isLoggedIn()) {
           return redirect("/");
         }
-        // Nếu chưa đăng nhập, không làm gì cả, cho phép hiển thị trang Login
         return null;
       }
     },
     {
       path: "/",
       element: <Layout />,
-      // Nếu CHƯA đăng nhập, chuyển hướng đến trang Login
       loader: () => {
         if (!isLoggedIn()) {
           return redirect("/Login");
         }
-        // Nếu đã đăng nhập, cho phép hiển thị trang chính
         return null;
       },
       children: [
@@ -51,16 +57,11 @@ function App() {
         },
         {
           path: "Reservations",
-          children: [
-            {
-              index: true,
-              element: <Reservations />,
-            },
-            {
-              path: ":bookingId",
-              element: <ReservationDetail />,
-            },
-          ],
+          element: <Reservations />,
+        },
+        {
+          path: "Reservations/:bookingId",
+          element: <ReservationDetail />,
         },
         {
           path: "Guests",
@@ -88,7 +89,10 @@ function App() {
 
   return (
     <ThemeProvider storageKey="theme">
-      <RouterProvider router={router} />
+        <RouterProvider 
+            router={router} 
+            hydrateFallback={<AppFallback />} 
+        />
     </ThemeProvider>
   );
 }
