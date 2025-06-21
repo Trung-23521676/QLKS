@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import "./FrontDesk.css";
 import CreateBookingModal from "./CreateBooking";
-import BookingDetail from "./BookingDetail"; // Giả sử bạn có component này để xem chi tiết
-import { getAllBookings, getBookingById } from "../../API/FrontDeskAPI"; // Sửa lại đường dẫn nếu cần
+import BookingDetail from "./BookingDetail"; 
+import { getAllBookings, getBookingById } from "../../API/FrontDeskAPI"; 
 
 // --- Các hằng số styles và months ---
 const bookingBarStyles = {
