@@ -1,140 +1,256 @@
-import { useState, useEffect, useMemo } from 'react';
-import {X} from "lucide-react";
-import CreateService from './CreateService'; // Adjust the import path as needed
+import React, { useState, useEffect, useRef } from "react";
+import { Search, SlidersHorizontal, X, Pencil } from "lucide-react";
+import CreateRequestModal from "./CreateRequestModal";
+import EditRequestModal from "./EditRequestModal";
+import DeleteRequestModal from "./DeleteRequestModal";
+import "./Service.css";
+import { fetchServiceRequests } from "../../API/ServiceAPI";
+import { updateServiceRequest } from "../../API/ServiceAPI";
+import { fetchServices } from "../../API/PricesAPI";
 
-export default function ServicePage() {
-  const [showCreateServiceModal, setShowCreateServiceModal] = useState(false);
-  const [services, setServices] = useState([
-    // Initial service data, similar to your image
-    { requestId: "1111", roomNumber: "A045", service: "hi hi", amount: 2, note: "Birthday", status: "Confirmed" },
-    { requestId: "1111", roomNumber: "A020", service: "hi hi", amount: 1, note: "", status: "Awaiting" },
-    // ... more services
-  ]);
+export default function Service() {
 
-  // State for the search input
-  const [search, setSearch] = useState("");
-  // State for the debounced search input
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  const handleCreateServiceClick = () => {
-    setShowCreateServiceModal(true);
+  const StatusBadge = ({ status }) => {
+    const lowerStatus = status.toLowerCase();
+    const className = `status-badge ${
+      lowerStatus === "confirmed" ? "status-confirmed" : "status-awaiting"
+    }`;
+    const label = status.charAt(0).toUpperCase() + status.slice(1);
+    return <span className={className}>{label}</span>;
   };
 
-  const handleCloseCreateServiceModal = () => {
-    setShowCreateServiceModal(false);
-  };
+  const toggleStatus = async (request_id, currentStatus) => {
+  const newStatus = currentStatus === "awaiting" ? "confirmed" : "awaiting";
 
-  const handleSaveService = (newService) => {
-    setServices((prevServices) => [...prevServices, newService]);
-  };
+  const existingRequest = service.find((item) => item.request_id === request_id);
+  if (!existingRequest) return;
 
-  const handleStatusChange = (index) => {
-    setServices((prevServices) =>
-      prevServices.map((service, i) =>
-        i === index
-          ? { ...service, status: service.status === 'Awaiting' ? 'Confirmed' : 'Awaiting' }
-          : service
+  try {
+    await updateServiceRequest(request_id, {
+      ...existingRequest,
+      status: newStatus,
+    });
+
+    setService((prev) =>
+      prev.map((item) =>
+        item.request_id === request_id
+          ? { ...item, status: newStatus }
+          : item
       )
     );
+  } catch (error) {
+    console.error("Failed to update status:", error);
+    alert("Failed to update status. Please try again.");
+  }
+};
+
+  const [search, setSearch] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedService, setSelectedService] = useState([]);
+  const [service, setService] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [serviceType, setServiceType] = useState([]);
+
+  const filterRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  const handleServiceChange = (service) => {
+    setSelectedService((prev) =>
+      prev.includes(service)
+        ? prev.filter((t) => t !== service)
+        : [...prev, service]
+    );
   };
 
-  // Debounce effect for search input
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500); // 500ms debounce time
-
-    return () => {
-      clearTimeout(handler);
+    const fetchData = async () => {
+      try {
+        const data = await fetchServiceRequests();
+        setService(data);
+        onSuccess();
+      } catch (error) {
+        console.error("Failed to fetch service requests:", error);
+      }
     };
-  }, [search]);
+    fetchData();
+  }, []);
 
-  // Filtered services based on debounced search
-  const filteredServices = useMemo(() => {
-    if (!debouncedSearch) {
-      return services;
-    }
-    const lowerCaseSearch = debouncedSearch.toLowerCase();
-    return services.filter(service =>
-      service.requestId.toLowerCase().includes(lowerCaseSearch) ||
-      service.roomNumber.toLowerCase().includes(lowerCaseSearch) ||
-      service.service.toLowerCase().includes(lowerCaseSearch) ||
-      service.note.toLowerCase().includes(lowerCaseSearch)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const serviceType = await fetchServices();
+        setServiceType(serviceType);
+        onSuccess();
+      } catch (error) {
+        console.error("Failed to fetch service type requests:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const refreshRequest = async () => {
+  try {
+    const data = await fetchServiceRequests();
+    setService(data);
+  } catch (error) {
+    console.error("Failed to refresh requests:", error);
+  }
+};
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setShowFilter(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredService = service.filter((s) => {
+  const matchesSearch = s.room_id?.toLowerCase().includes(search.toLowerCase());
+
+  const matchesService =
+    selectedService.length === 0 || selectedService.includes(s.service_id);
+
+  return matchesSearch && matchesService;
+});
+
+  const handleDeleteClick = (request) => {
+    setSelectedRequest(request);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedRequest) return;
+    setService((prev) =>
+      prev.filter((item) => item.request_id !== selectedRequest.request_id)
     );
-  }, [services, debouncedSearch]);
-
+    setIsDeleteModalOpen(false);
+    setSelectedRequest(null);
+  };
 
   return (
-    <div>
-      <div className="flex justify-between">
-        <div>
-          <p className="name">Service</p>
-          <p className="labeldash">_________</p>
-        </div>
-      <div className="flex justify-end items-center pt-4 pr-4 gap-x-4"> {/* Adjusted to allow space for search */}
-        {/* Search Input */}
-        <input
+    <div className="rooms-container">
+      <p className="name">Service</p>
+      <p className="labeldash">__________</p>
+
+      <div className="labelsearch">
+        <button
+          className="filter"
+          ref={buttonRef}
+          onClick={() => setShowFilter(!showFilter)}
+        >
+          <SlidersHorizontal size={24} />
+        </button>
+
+        {showFilter && (
+          <div className="filter-panel" ref={filterRef}>
+            <div>
+              <p className="filter-title">Service</p>
+              <div className="filter-options">
+                {serviceType.map((type) => (
+  <label key={type.service_id} className="checkbox-label">
+    <input
+      type="checkbox"
+      checked={selectedService.includes(type.service_id)}
+      onChange={() => handleServiceChange(type.service_id)}
+    />
+    {type.service_id}
+  </label>
+))}
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        <div className="room-header">
+          <input
             type="text"
-            placeholder="Search by Service ID"
+            placeholder="Search by room number"
+            className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-80 pl-4 pr-4 py-2 rounded-full text-sm bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-        />
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
-          onClick={handleCreateServiceClick}
-        >
-          Create service
-        </button>
+          />
+          <button
+            className="create-button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Create request
+          </button>
+
+          <CreateRequestModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={refreshRequest}
+          />
+        </div>
       </div>
-    </div>
-      {/* Service Table */}
-      <div className="p-4">
-        <table className="min-w-full bg-blue-200 rounded-lg text-black">
+
+      <div className="rtable-container">
+        <table className="table">
           <thead>
             <tr>
-              <th className="px-4 py-2 text-left">Request ID</th>
-              <th className="px-4 py-2 text-left">Room number</th>
-              <th className="px-4 py-2 text-left">Service</th>
-              <th className="px-4 py-2 text-left">Amount</th>
-              <th className="px-4 py-2 text-left">Note</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th> {/* Column for the X button */}
+              <th>Request ID</th>
+              <th>Room number</th>
+              <th>Service</th>
+              <th>Amount</th>
+              <th>Note</th>
+              <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            {filteredServices.length > 0 ? (
-              filteredServices.map((service, index) => (
-                <tr key={index} className="bg-white border-b last:border-b-0">
-                  <td className="px-4 py-2">{service.requestId}</td>
-                  <td className="px-4 py-2">{service.roomNumber}</td>
-                  <td className="px-4 py-2">{service.service}</td>
-                  <td className="px-4 py-2">{service.amount}</td>
-                  <td className="px-4 py-2">{service.note || "-"}</td> {/* Display "-" if note is empty */}
-                  <td className="px-4 py-2">
-                    {/* Using the button logic for status change */}
-                    <button
-                      onClick={() => handleStatusChange(index)}
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
-                        service.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                      }`}
+            {filteredService.length > 0 ? (
+              filteredService.map((service) => (
+                <tr key={service.request_id}>
+                  <td>{service.request_id}</td>
+                  <td>{service.room_id}</td>
+                  <td>{service.service_id}</td>
+                  <td>{service.amount}</td>
+                  <td>{service.note}</td>
+                  <td>
+                    <span
+                      onClick={() => toggleStatus(service.request_id, service.status) }
+                      style={{ cursor: "pointer" }}
                     >
-                      {service.status}
-                    </button>
-                    {/* If you prefer to use the StatusBadge component for display only, and a separate button for action: */}
-                    {/* <StatusBadge status={service.status} /> */}
+                    <StatusBadge status={service.status} />
+                    </span>
                   </td>
-                  <td className="px-4 py-2">
-                    <button className="text-red-600 hover:text-red-900">
-                      <X size={20} />
+                  <td>
+                    <button
+                      className="edit-btn"
+                      onClick={() => {
+                        setSelectedRequest(service);
+                        setIsModalOpen1(true);
+                      }}
+                    >
+                      <Pencil size={16} />
+                    </button>
+
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeleteClick(service)}
+                    >
+                      <X size={16} />
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-4 py-3 text-center bg-white text-gray-500">
-                  No matching services found.
+                <td colSpan={7} className="no-data">
+                  No matching requests found.
                 </td>
               </tr>
             )}
@@ -142,11 +258,28 @@ export default function ServicePage() {
         </table>
       </div>
 
-      {/* CreateService Modal */}
-      <CreateService
-        open={showCreateServiceModal}
-        onClose={handleCloseCreateServiceModal}
-        onSave={handleSaveService}
+      {/* Modals */}
+      {isModalOpen1 && selectedRequest && (
+        <EditRequestModal
+          isOpen={isModalOpen1}
+          onClose={() => {
+            setIsModalOpen1(false);
+            setSelectedRequest(null);
+          }}
+          request={selectedRequest}
+           onSuccess={refreshRequest}
+        />
+      )}
+
+      <DeleteRequestModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedRequest(null);
+        }}
+        request={selectedRequest}
+        onConfirm={handleConfirmDelete}
+         onSuccess={refreshRequest}
       />
     </div>
   );

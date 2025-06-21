@@ -1,0 +1,183 @@
+.rooms-container {
+  height: 100vh;
+  overflow: hidden;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  margin: 1rem;
+}
+.name {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.labeldash {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: -14px;
+}
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.filter {
+    color: #6C757D;
+    cursor: pointer;
+}
+
+.search-input {
+    display: flex;
+    width: 400px;
+    padding: 8px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 30px;
+    background: #FFF;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+    margin-right: 16px;
+}
+
+.filter-panel {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    z-index: 10;
+    width: 16rem;
+    padding: 1rem;
+    border-radius: 16px;
+    background: #FFF;
+    box-shadow: 8px 3px 22px 10px rgba(150, 150, 150, 0.11);
+    font-size: 0.875rem;
+    color: #000;
+    margin-left: 25%;
+    margin-top: 5%;
+    max-height: 50%;
+}
+
+.filter-title {
+    color: var(--Grey-Grey-500, #667085);
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 150%; /* 18px */
+}
+
+.filter-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #2B2F38;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; /* 24px */   
+}
+
+.rtable-container {
+    margin-top: 16px;
+    background: transparent;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--Primary-Primary-50, #E8F1FD);
+    overflow-y: auto;
+    max-height: 70%;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--Grey-Grey-600, #5D6679);
+    font-family: Inter;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+    background-color: #fff;
+}
+
+.table thead {
+    background-color: #F0F8FF;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 2px 8px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+}
+
+.status-available {
+    background: var(--Primary-Primary-50, #E8F1FD);
+    color: var(--Primary-Primary-400, #448DF2);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}
+
+.status-booked {
+    background: var(--Error-Error-50, #FEECEB);
+    color: var(--Error-Error-400, #F36960);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}
+
+.status-reserved {
+    background: var(--Success-Success-50, #E7F8F0);
+    color: var(--Success-Success-400, #41C588);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}

@@ -1,0 +1,128 @@
+/* src/routes/report.css */
+
+.report-page {
+  height: 100vh;
+  overflow: hidden;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  margin: 1rem;
+}
+
+.name {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.labeldash {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: -14px;
+}
+.cardname {
+    color: var(--Grey-Grey-800, #383E49);
+    font-family: Inter;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 150%;
+}
+.overview-section {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    background-color: #fff;
+    width: 100%;
+    padding: 24px;
+}
+.data {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    gap: 24px;
+    padding: 4px;
+}
+.tittle {
+    flex-direction: column;
+}
+.label1 {
+    color: var(--Grey-Grey-400, #858D9D);
+    text-align: left;
+    font-family: Inter;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}
+.label2 {
+    color: var(--Grey-Grey-600, #5D6679);
+    text-align: left;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 150%; 
+    margin-top: 8px;
+}
+.content {
+    color: #0077B6;
+    text-align: center;
+    font-family: Inter;
+    font-size: 26px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 125%; 
+    padding-right: 64px;
+}
+.chartcard {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.card .number {
+  color: #228be6;
+  font-weight: 600;
+  font-size: 20px;
+  margin-left: 8px;
+}
+
+.stat-section {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.full-width {
+  flex: 1 1 100%;
+}
+
+.export-button {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.export-button button {
+    width: 120px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 30px;
+    border: 1px solid #005F94;
+    background: #0077B6;
+    color: #FFF;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    cursor: pointer;
+}

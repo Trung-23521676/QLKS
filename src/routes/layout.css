@@ -1,13 +1,14 @@
 
 .page-container {
     display: flex;
-    height: 100vh;
+    background-color: #F5F6FA;
+    min-height: 100vh;
+    max-height: 100vh;
 }
 
 .main-content {
     flex-grow: 1;
     padding: 20px;
-    min-width: 0; 
-    height: 100vh;
+    background-color: #F5F6FA;
     overflow: hidden;
 }

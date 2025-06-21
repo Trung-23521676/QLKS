@@ -1,20 +1,16 @@
-import React from 'react';
 
-// A mapping for status colors 
 const statusStyles = {
   "Due In": "bg-yellow-100 text-yellow-800 border-yellow-300",
-  "Checked In": "bg-green-100 text-green-800 border-green-300", // Corrected key from "Check in" to "Checked In" to match backend
+  "Checked In": "bg-green-100 text-green-800 border-green-300",
   "Due Out": "bg-orange-100 text-orange-800 border-orange-300",
   "Checked Out": "bg-blue-100 text-blue-800 border-blue-300",
 };
-
 
 export default function BookingDetail({ isOpen, onClose, booking }) {
   if (!isOpen || !booking) {
     return null;
   }
 
-  // Helper functions 
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -25,17 +21,13 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
       return `${amount.toLocaleString('vi-VN')}`;
   }
 
-  // --- INVOICE CALCULATION CHANGES ---
-  // Use backend field names (check_in, check_out)
   const nights = Math.ceil((new Date(booking.check_out) - new Date(booking.check_in)) / (1000 * 60 * 60 * 24)) || 1;
   const roomTotal = (booking.nightly_rate || 0) * nights;
-  // NOTE: Your backend 'getBookingById' does not return 'services'. This will default to 0.
   const servicesTotal = (booking.services || []).reduce((acc, service) => acc + service.price * service.quantity, 0);
   const subTotal = roomTotal + servicesTotal;
   const vat = subTotal * 0.10; 
-  const additionalFee = 0; // NOTE: 'additional_fee_percent' is not returned by the backend.
+  const additionalFee = 0;
   const total = subTotal + vat + additionalFee;
-
 
   return (
     <div 
@@ -47,7 +39,6 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-start p-4">
-            {/* Use backend field name: booking_id */}
             <h2 className="text-2xl font-bold text-slate-800">Booking #{booking.booking_id}</h2>
              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,7 +49,6 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
 
         <div className="flex flex-col md:flex-row gap-8 p-4">
             <div className="w-full md:w-3/5 space-y-6">
-                {/* --- GUEST INFORMATION: Use backend field names --- */}
                 <div>
                     <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">GUEST</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -70,7 +60,6 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
                     </div>
                 </div>
 
-                {/* --- RESERVATION DETAILS: Use backend field names --- */}
                 <div>
                     <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">RESERVATION</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -83,7 +72,6 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
                     </div>
                 </div>
 
-                {/* --- PAYMENT DETAILS: Use backend field names --- */}
                 <div>
                     <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">PAYMENT</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,14 +91,12 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
 
                  <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-3">
                     <button onClick={onClose} className="px-6 py-2 rounded-full font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Close</button>
-                    {/* Use backend field name */}
                     <button className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition">
                         {booking.status === 'Checked Out' ? 'Confirm and Print Invoice' : 'Confirm'}
                     </button>
                 </div>
             </div>
 
-            {/* --- RIGHT SIDE INVOICE PREVIEW: Use backend field names --- */}
             <div className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
                 <div className="text-center mb-4">
                     <h3 className="font-bold text-slate-800">Hotel Name</h3>
@@ -133,7 +119,11 @@ export default function BookingDetail({ isOpen, onClose, booking }) {
                 <h4 className="font-bold text-slate-800 mb-2">Including</h4>
                 <div className="space-y-3 text-sm">
                     <InvoiceLineItem label={`Room - ${booking.room_type_name} (${nights} ${nights > 1 ? 'nights' : 'night'})`} amount={roomTotal} />
-                     {/* Companions are fetched but not shown in invoice, which is fine. Services are not fetched. */}
+                     {(booking.companions || []).map((companion, index) => (
+                         <div key={index} className="flex justify-between items-center text-slate-600 pl-4">
+                             <span>↳ Companion: {companion.fullname}</span>
+                         </div>
+                     ))}
                      {(booking.services || []).map((service, index) => (
                          <InvoiceLineItem key={index} label={`${service.name} (x${service.quantity})`} amount={service.price * service.quantity}/>
                      ))}

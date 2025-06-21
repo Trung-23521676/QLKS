@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./Delete.css";
 import { X } from "lucide-react";
 import RoomNoTable from "./RoomNoTable";
+import { deleteRoomType } from "../../API/PricesAPI";
 
-export default function DeleteRoomModal({ room, onClose }) {
+export default function DeleteRoomModal({ room, onClose, onSuccess }) {
   const [roomTypeId, setRoomTypeId] = useState("");
   const [roomType, setRoomType] = useState("");
   const [area, setArea] = useState("");
@@ -15,34 +16,28 @@ export default function DeleteRoomModal({ room, onClose }) {
   
 
   useEffect(() => {
-  if (room) {
-    setRoomTypeId(room.roomTypeId || "");
-    setRoomType(room.roomType || "");
-    setArea(room.area?.toString() || "");
-    setBed(room.bed || "");
-    setMax(room.max?.toString() || "");
-    setPrice(room.price?.toString() || "");
-    setSurcharge(room.surcharge?.toString() || "");
-    setNote(room.note?.toString() || "");
-  }
-}, [room]);
-
+    if (room) {
+      setRoomTypeId(room.room_type_id || "");
+      setRoomType(room.room_type_name || "");
+      setArea(room.room_size?.toString() || "");
+      setBed(room.bed || "");
+      setMax(room.max_guests?.toString() || "");
+      setPrice(room.price_room?.toString() || "");
+      setSurcharge(room.surcharge_rate?.toString() || "");
+      setNote(room.note || "");
+    }
+  }, [room]);
   const handleDelete = async () => {
-    // // Gửi dữ liệu cập nhật lên backend hoặc lưu vào state (nếu dùng local)
-    // const updatedRoom = {
-    //   ...room,
-    //   roomTypeId,
-    //   roomType,
-    //   area: Number(area),
-    //   bed,
-    //   max: Number(max),
-    //   price: Number(price),
-    //   surcharge: Number(surcharge),
-    // };
-    console.log("Delete room:");
-    // // Đóng modal sau khi lưu
-    // onClose();
-  };
+  try {
+    await deleteRoomType(roomTypeId);
+    console.log("Đã xoá room type:", roomTypeId);
+    onClose();     // Đóng modal
+    onSuccess();   // Refresh lại danh sách
+  } catch (err) {
+    console.error("Lỗi khi xoá room type:", err);
+    alert("Xoá thất bại. Vui lòng thử lại.");
+  }
+};
 
   return (
     <div className="modal-overlay">

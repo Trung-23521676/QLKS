@@ -1,35 +1,30 @@
 import React, { useEffect, useState } from "react";
 import "./Delete.css";
 import { X } from "lucide-react";
+import { deleteService } from "../../API/PricesAPI";
 
-export default function DeleteServiceModal({ service, onClose }) {
+export default function DeleteServiceModal({ service, onClose, onSuccess }) {
   const [serviceId, setServiceId] = useState("");
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
   
     useEffect(() => {
     if (service) {
-      setServiceId(service.serviceId || "");
-      setName(service.name || "");
-      setPrice(service.price || "");
+      setServiceId(service.service_id || "");
+      setName(service.service_name || "");
+      setPrice(service.price_service || "");
     }
   }, [service]);
 
   const handleDelete = async () => {
-    // // Gửi dữ liệu cập nhật lên backend hoặc lưu vào state (nếu dùng local)
-    // const updatedRoom = {
-    //   ...room,
-    //   roomTypeId,
-    //   roomType,
-    //   area: Number(area),
-    //   bed,
-    //   max: Number(max),
-    //   price: Number(price),
-    //   surcharge: Number(surcharge),
-    // };
-    console.log("Delete room:");
-    // // Đóng modal sau khi lưu
-    // onClose();
+    try {
+      await deleteService(serviceId); // 👈 Gọi API xóa
+      console.log("Service deleted");
+      onClose(); // Đóng modal
+      onSuccess(); // Refresh lại danh sách nếu cần
+    } catch (error) {
+      console.error("Lỗi khi xóa service:", error);
+    }
   };
 
   return (
