@@ -1,7 +1,5 @@
 // src/App.jsx
-import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
+import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 import { ThemeProvider } from "./contexts/theme-context";
 import Layout from "./routes/layout";
 
@@ -16,15 +14,29 @@ import Service from "./routes/Service/Page";
 import Prices from "./routes/Prices/Page";
 import Report from "./routes/Report/Page";
 
+const checkAuth = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return redirect("/Login");
+  }
+  return null;
+}
 function App() {
   const router = createBrowserRouter([
     {
       path: "/Login",
       element: <LoginPage />,
+      loader: () => {
+        if (!checkAuth()) {
+          return redirect("/Login");
+        }
+        return null;
+      }
     },
     {
       path: "/",
       element: <Layout />,
+      loader: checkAuth,
       children: [
         {
           index: true,

@@ -1,15 +1,54 @@
-// src/routes/Login/Page.tsx
-import React, { useState } from "react";
+// src/routes/Login/Page.jsx
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+  // --- Thêm state để quản lý lỗi và trạng thái loading ---
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    console.log("Login with", phone, password);
-    navigate("/");
+  // --- Cập nhật hàm handleLogin ---
+  const handleLogin = async () => {
+    // Reset lỗi cũ và bắt đầu loading
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Gọi API đến backend qua proxy của Vite
+      const response = await fetch("/api/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier: phone, password }),
+      });
+
+      // Lấy dữ liệu JSON từ response
+      const data = await response.json();
+
+      // Nếu response không thành công (vd: sai pass), backend sẽ trả về lỗi
+      if (!response.ok) {
+        // Ném lỗi với message từ backend
+        throw new Error(data.message || "Đăng nhập thất bại.");
+      }
+
+      // Nếu đăng nhập thành công:
+      // 1. Lưu token vào localStorage
+      localStorage.setItem("token", data.token);
+
+      // 2. Điều hướng đến trang chính, thay thế trang login trong lịch sử trình duyệt
+      navigate("/", { replace: true });
+
+    } catch (err) {
+      // Bắt lỗi từ network hoặc từ backend và hiển thị cho người dùng
+      setError(err.message);
+    } finally {
+      // Dừng loading dù thành công hay thất bại
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -21,7 +60,7 @@ export default function LoginPage() {
         alt="background"
       />
 
-      {/* Logo góc trái trên */}
+      {/* Logo */}
       <div className="absolute top-6 left-6 w-20 h-20 z-10">
         <div className="absolute inset-0 bg-[#14274a] rounded-br-3xl rounded-tl-3xl" />
         <div className="absolute inset-[3px] bg-white rounded-br-3xl rounded-tl-3xl flex items-center justify-center">
@@ -67,12 +106,22 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* --- Hiển thị thông báo lỗi nếu có --- */}
+          {error && (
+            <div className="text-red-600 text-sm text-center mb-4">
+              {error}
+            </div>
+          )}
+
           {/* Sign in button */}
           <button
             onClick={handleLogin}
-            className="w-full h-12 bg-sky-600 text-white text-base font-medium rounded-[30px] shadow-md hover:bg-sky-700 transition"
+            // --- Vô hiệu hóa nút khi đang loading ---
+            disabled={isLoading}
+            className="w-full h-12 bg-sky-600 text-white text-base font-medium rounded-[30px] shadow-md hover:bg-sky-700 transition disabled:bg-sky-400 disabled:cursor-not-allowed"
           >
-            Sign in
+            {/* --- Thay đổi text khi đang loading --- */}
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </div>
       </div>
