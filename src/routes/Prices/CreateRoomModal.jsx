@@ -3,11 +3,12 @@ import React from "react";
 import "./CreateRoomModal.css";
 import { X } from "lucide-react";
 import RoomNoTable from "./RoomNoTable";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditRoomNoModal from "./EditRoomNoModal";
 import DeleteRoomNoModal from "./DeleteRoomNoModal";
+import {createRoomType} from "../../API/PricesAPI";
 
-export default function CreateRoomModal({ isOpen, onClose }) {
+export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   const [roomTypeId, setRoomTypeId] = useState("");
@@ -23,9 +24,29 @@ export default function CreateRoomModal({ isOpen, onClose }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
-  const handleSave = async () => {
-    console.log("saved");
+  const handleCreateRoomType = async () => {
+    console.log("clicked save");
+  const newRoomType = {
+    room_type_id: roomTypeId,
+    room_type_name: roomType,
+    room_size: parseFloat(area),
+    bed,
+    note,
+    max_guests: parseInt(max),
+    price_room: parseFloat(price),
+    surcharge_rate: parseFloat(surcharge),
+  };
+  console.log("Dữ liệu gửi lên:", newRoomType);
+
+  try {
+    const createdRoomType = await createRoomType(newRoomType);
+    console.log("Room type created:", createdRoomType);
+    onClose();
+    onSuccess();
+  } catch (err) {
+    console.error("Lỗi khi tạo room type:", err);
   }
+};
 
   const handleCreateRoomNo = () => {
     setIsModalOpen(true);
@@ -43,7 +64,7 @@ export default function CreateRoomModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-overlay">
-      <div className="room-modal-content">
+      <div className="rroom-modal-content">
             
         <button className="close-button" onClick={onClose}>
             <X size={24} />
@@ -180,7 +201,7 @@ export default function CreateRoomModal({ isOpen, onClose }) {
                 />
             </div>
 
-            <p className="dash">
+            {/* <p className="dash">
                 _________________________________________________________________________________________
             </p>
 
@@ -198,9 +219,9 @@ export default function CreateRoomModal({ isOpen, onClose }) {
                   isOpen={isDeleteModalOpen}
                   roomNo={selectedRoom}
                   onClose={() => setIsDeleteModalOpen(false)}/>
-            )}
+            )} */}
             
-            <button className="button" onClick={handleSave}>
+            <button className="button" onClick={handleCreateRoomType}>
                 Save
             </button>
         </div>

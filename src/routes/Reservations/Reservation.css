@@ -1,0 +1,144 @@
+.rooms-container {
+  height: 100vh;
+  overflow: hidden;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  margin: 1rem;
+}
+.name {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.labeldash {
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: -14px;
+}
+.rheader {
+    display: flex;
+    justify-content: right;
+    margin-bottom: 1rem;
+}
+
+.rsearch-input {
+    display: flex;
+    width: 400px;
+    padding: 8px 16px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    margin-right: 16px;
+    gap: 8px;
+    border-radius: 30px;
+    background: #FFF;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    color: #6C757D;
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+}
+
+.rtable-container {
+    margin-top: 16px;
+    background: transparent;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--Primary-Primary-50, #E8F1FD);
+    overflow-y: auto;
+    max-height: 70%;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--Grey-Grey-600, #5D6679);
+    font-family: Inter;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+    background-color: #fff;
+}
+
+.table thead {
+    background-color: #F0F8FF;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.guest {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    align-items: center;
+    font-weight: bold   ;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 2px 8px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+}
+
+.status-confirmed {
+    background: var(--Primary-Primary-50, #E8F1FD);
+    color: var(--Primary-Primary-400, #448DF2);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}
+
+.status-declined {
+    background: var(--Error-Error-50, #FEECEB);
+    color: var(--Error-Error-400, #F36960);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}
+
+.status-awaiting {
+    background: var(--Success-Success-50, #E7F8F0);
+    color: var(--Success-Success-400, #41C588);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; 
+}

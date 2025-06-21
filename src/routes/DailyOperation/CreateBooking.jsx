@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBooking } from '../../API/FrontDeskAPI'; 
+import { getAvailableRooms } from '../../API/RoomAPI'; 
 
 const CreateBookingModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -20,11 +21,33 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
   const [nightlyRate, setNightlyRate] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Pay at hotel');
   const [companions, setCompanions] = useState([]);
-  const recommendedRooms = ['A102', 'A122', 'B202'];
-
+  
   // --- STATE ĐỂ XỬ LÝ VIỆC GỌI API ---
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [isFetchingRooms, setIsFetchingRooms] = useState(false);
+
+  // --- USEEFFECT ĐỂ TỰ ĐỘNG LẤY PHÒNG TRỐNG ---
+  useEffect(() => {
+    if (roomTypeId) {
+      const fetchRooms = async () => {
+        setIsFetchingRooms(true);
+        setAvailableRooms([]);
+        try {
+          const rooms = await getAvailableRooms(roomTypeId);
+          setAvailableRooms(rooms);
+        } catch (err) {
+          console.error("Failed to fetch available rooms:", err);
+        } finally {
+          setIsFetchingRooms(false);
+        }
+      };
+      fetchRooms();
+    } else {
+        setAvailableRooms([]);
+    }
+  }, [roomTypeId]);
 
   // --- CÁC HÀM XỬ LÝ COMPANION ---
   const addCompanion = () => {
@@ -40,7 +63,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
     setCompanions(companions.map(comp => comp.id === id ? { ...comp, [field]: finalValue } : comp));
   };
 
-  // --- HÀM SUBMIT FORM HOÀN CHỈNH ---
+  // --- HÀM SUBMIT FORM ---
   const handleSubmit = async (e, status = 'Due In') => {
     e.preventDefault();
     setIsLoading(true);
@@ -80,17 +103,17 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
         <form className="p-6 space-y-6">
           {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
 
-          {/* --- GUEST INFORMATION --- */}
+          {/* Guest Information */}
           <div className="relative">
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Guest</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fullname</label>
-                <input type="text" placeholder="Fullname" value={fullname} onChange={(e) => setFullname(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                <input required type="text" placeholder="Fullname" value={fullname} onChange={(e) => setFullname(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">ID</label>
-                <input type="text" placeholder="ID" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                <input required type="text" placeholder="ID" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
@@ -114,29 +137,29 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* --- RESERVATION DETAILS --- */}
+          {/* Reservation Details */}
           <div>
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Reservation</p>
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Check in</label>
-                    <input type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <input required type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Room type</label>
-                    <input type="text" placeholder="Room Type ID" value={roomTypeId} onChange={(e) => setRoomTypeId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <input required type="text" placeholder="Room Type ID" value={roomTypeId} onChange={(e) => setRoomTypeId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
-                    <input type="number" placeholder="Adults" min="1" value={adults} onChange={(e) => setAdults(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <input required type="number" placeholder="Adults" min="1" value={adults} onChange={(e) => setAdults(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Check out</label>
-                    <input type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <input required type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Room ID</label>
-                    <input type="text" placeholder="Room ID" value={roomId} onChange={(e) => setRoomId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <input type="text" placeholder="Select from available rooms" value={roomId} onChange={(e) => setRoomId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Children</label>
@@ -144,18 +167,35 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
                 </div>
             </div>
             <div className="mt-4">
-              <span className="block text-sm font-medium text-gray-700 mb-2">Recommended</span>
-              <div className="flex gap-2 flex-wrap">
-                {recommendedRooms.map(room => (<button key={room} type="button" className="px-4 py-2 border border-blue-300 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-50" onClick={() => setRoomId(room)}>{room}</button>))}
+              <span className="block text-sm font-medium text-gray-700 mb-2">Available Rooms</span>
+              <div className="flex gap-2 flex-wrap min-h-[38px] items-center p-2 bg-gray-50 rounded-lg">
+                {isFetchingRooms && <p className="text-sm text-gray-500">Finding rooms...</p>}
+                {!isFetchingRooms && availableRooms.length > 0 && (
+                  availableRooms.map(room => (
+                    <button 
+                      key={room.room_id} 
+                      type="button" 
+                      className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors ${roomId === room.room_id ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                      onClick={() => setRoomId(room.room_id)}>
+                        {room.room_id}
+                    </button>
+                  ))
+                )}
+                {!isFetchingRooms && availableRooms.length === 0 && roomTypeId && (
+                  <p className="text-sm text-gray-500">No available rooms for this type.</p>
+                )}
+                {!roomTypeId && (
+                   <p className="text-sm text-gray-500">Please enter a room type to see available rooms.</p>
+                )}
               </div>
             </div>
           </div>
           
-          {/* --- COMPANIONS --- */}
+          {/* Companions */}
           <div>
              <div className="flex items-center justify-between mb-3">
               <p className="text-xs uppercase text-gray-500 font-semibold">Companions</p>
-              <button type="button" onClick={addCompanion} disabled={companions.length >= 3} className="flex items-center text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50">
+              <button type="button" onClick={addCompanion} disabled={companions.length >= 3} className="flex items-center text-sm text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
                 Add Companion
               </button>
@@ -191,13 +231,13 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
             ))}
           </div>
 
-          {/* --- PAYMENT --- */}
+          {/* Payment */}
            <div>
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Payment</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nightly rate</label>
-                <input type="text" value={nightlyRate} onChange={(e) => setNightlyRate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" />
+                <input type="text" placeholder="Auto-filled" readOnly value={nightlyRate} onChange={(e) => setNightlyRate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment method</label>
@@ -210,12 +250,12 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* --- ACTION BUTTONS --- */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
             <button type="button" onClick={onClose} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50">
               Cancel
             </button>
-            <button type="button" onClick={(e) => handleSubmit(e, 'Check in')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
+            <button type="button" onClick={(e) => handleSubmit(e, 'Check In')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
               {isLoading ? 'Saving...' : 'Save & check in'}
             </button>
             <button type="button" onClick={(e) => handleSubmit(e, 'Due In')} disabled={isLoading} className="px-6 py-2 bg-yellow-500 text-white rounded-full font-semibold hover:bg-yellow-600 disabled:opacity-50">

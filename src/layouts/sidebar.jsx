@@ -1,45 +1,74 @@
 import { forwardRef } from "react";
 import { NavLink } from "react-router-dom";
 import { navbarLinks } from "../constants";
-import IMG from "../assets/react.svg";
-import { cn } from "../utils/cn";
 import PropTypes from "prop-types";
+import "../layouts/sidebar.css";
 
-export const Sidebar = forwardRef(({ collapsed }, ref) => {
+export const Sidebar = forwardRef((props, ref) => {
     return (
-        <aside
-            ref={ref}
-            className={cn(
-                "fixed z-[100] flex flex-col overflow-x-hidden bg-white top-4 left-4 h-[calc(100vh-2rem)]",
-                "rounded-3xl shadow-2xl", 
-                "[transition:_width_300ms_cubic-bezier(0.4,_0,_0.2,_1),_left_300ms_cubic-bezier(0.4,_0,_0.2,_1),_background-color_150ms_cubic-bezier(0.4,_0,_0.2,_1)]",
-                "md:w-[300px]",
-                "max-md:left-4", 
-            )}
-        >
-            <div className="flex gap-x-3 p-3">
-                <img src={IMG} alt="Logoipsum" className="dark:hidden" />
-                {!collapsed  && <p className="text-lg font-medium text-slate-900 transition-colors ">Logoipsum</p>}
+        <aside ref={ref} className="sidebar">
+            {/* Logo */}
+            <div className="sidebar-logo">
+                <span style={{
+                    fontWeight: 700,
+                    fontSize: 28,
+                    color: "#0077B6",
+                    width: "100%",
+                    textAlign: "center",
+                    letterSpacing: 1,
+                }}>
+                    Your Logo
+                </span>
             </div>
-            <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:_thin]">
+            <div className="sidebar-content">
                 {navbarLinks.map((navbarLink) => (
-                    <nav key={navbarLink.title} className={cn("sidebar-group", collapsed && "md:items-center")}>
-                        <p className={cn("sidebar-group-title", collapsed && "md:w-[45px]")}>{navbarLink.title}</p>
+                    <nav key={navbarLink.title} className="sidebar-group">
+                        <p className="sidebar-group-title">{navbarLink.title}</p>
                         {navbarLink.links.map((link) => (
-                            <NavLink key={link.label} to={link.path} className={cn("sidebar-item", collapsed && "md:w-[45px]")}>
-                                <link.icon size={22} className="flex-shrink-0" />
-                                {!collapsed && <p className="whitespace-nowrap">{link.label}</p>}
+                            <NavLink
+                                key={link.label}
+                                to={link.path}
+                                className={({ isActive }) =>
+                                    [
+                                        "sidebar-item",
+                                        isActive ? "active" : "",
+                                    ].join(" ")
+                                }
+                            >
+                                <span className="sidebar-icon">
+                                    <link.icon size={24} strokeWidth={1.5} />
+                                </span>
+                                <span className="sidebar-label">{link.label}</span>
                             </NavLink>
                         ))}
                     </nav>
                 ))}
+            </div>
+            {/* Logout icon ở dưới cùng */}
+            <div style={{
+                marginTop: "auto",
+                display: "flex",
+                justifyContent: "center",
+                padding: 16,
+            }}>
+                <button className="sidebar-item" style={{
+                    borderRadius: "50%",
+                    width: 44,
+                    height: 44,
+                    justifyContent: "center",
+                    padding: 0,
+                }}>
+                    <svg width="24" height="24" fill="none" stroke="#1B263B" strokeWidth="2">
+                        <path d="M9 6v-2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                        <path d="M16 17v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2" />
+                        <path d="M7 12h10" />
+                        <path d="M15 16l4-4-4-4" />
+                    </svg>
+                </button>
             </div>
         </aside>
     );
 });
 
 Sidebar.displayName = "Sidebar";
-
-Sidebar.propTypes = {
-    collapsed: PropTypes.bool,
-};
+Sidebar.propTypes = {};

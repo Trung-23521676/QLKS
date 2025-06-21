@@ -11,24 +11,14 @@
   z-index: 999;
 }
 
-.room-modal-content {
+.smodal-content {
   position: relative;
   background-color: white;
   padding: 2rem;
   border-radius: 30px;
   width: 550px;
   max-width: 90%;
-  height: 95%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-}
-.rroom-modal-content {
-  position: relative;
-  background-color: white;
-  padding: 2rem;
-  border-radius: 30px;
-  width: 550px;
-  max-width: 90%;
-  height: 70%;
+  height: 45%;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -63,6 +53,21 @@
   font-weight: 300;
   line-height: normal;
   padding: 16px;
+}
+.select {
+  width: 320px;
+  height: 40px;
+  border-radius: 30px;
+  border: 1px solid #6C757D;
+  background: #FFF;
+  color: #6C757D;
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+  padding: 8px 16px;
+  appearance: none;
 }
 .form-container {
   margin-top: 24px;
@@ -112,5 +117,4 @@
     position: absolute;
     bottom: 24px;
     right: 24px;
-    cursor: pointer;
 }

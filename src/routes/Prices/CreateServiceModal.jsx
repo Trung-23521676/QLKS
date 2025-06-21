@@ -3,17 +3,32 @@ import "./CreateServiceModal.css";
 import { X } from "lucide-react";
 import RoomNoTable from "./RoomNoTable";
 import { useState } from "react";
+import { createService } from "../../API/PricesAPI";
 
-export default function CreateServiceModal({ isOpen, onClose }) {
+export default function CreateServiceModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   const [serviceId, setServiceId] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
 
-  const handleSave = async () => {
-    console.log("saved");
+  const handleCreateService = async () => {
+  const newService = {
+    service_id: serviceId,
+    service_name: name,
+    price_service: parseFloat(price),
+  };
+
+  try {
+    await createService(newService);
+    console.log("Service created:", newService);
+    onClose();
+    onSuccess();
+  } catch (err) {
+    console.error("Lỗi khi tạo service:", err);
   }
+};
+
 
   return (
     <div className="modal-overlay">
@@ -74,7 +89,7 @@ export default function CreateServiceModal({ isOpen, onClose }) {
                 />
             </div>
             
-            <button className="button" onClick={handleSave}>
+            <button className="button" onClick={handleCreateService}>
                 Save
             </button>
         </div>
