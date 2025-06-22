@@ -1,58 +1,60 @@
 import React, { useState, useEffect } from "react";
 import "./Guests.css";
-import { fetchAllGuests } from "../../API/GuestAPI"; // 1. Import hàm API
+import { fetchAllGuests } from "../../API/GuestAPI";
 
 export default function Guests() {
-  // 2. Thêm state cho loading và error
-  const [guests, setGuests] = useState([]);
+  const [guest, setGuest] = useState([]);
+  const [search, setSearch] = useState("");
+  const [selectedType, setSelectedType] = useState("all"); // all | domestic | international
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [search, setSearch] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-
-  // 3. Sử dụng useEffect để fetch dữ liệu thật
   useEffect(() => {
     const loadGuests = async () => {
       try {
         setIsLoading(true);
-        const guestsFromDB = await fetchAllGuests();
-
-        // 4. Ánh xạ (map) dữ liệu từ backend sang cấu trúc mà frontend cần
-        const transformedGuests = guestsFromDB.map((guest, index) => ({
-          index: index + 1,
-          name: guest.guest_fullname,
-          id: guest.guest_id_card, // Giả sử bạn muốn dùng guest_id_card làm ID
-          address: guest.guest_address,
-          type: guest.guest_type_name === 'National' ? 'domestic' : 'international',
-          status: guest.status, // Giả sử backend trả về status là 'Staying', 'Left', 'Upcoming'
-          avatar: `https://i.pravatar.cc/150?img=${index + 1}`, // Giữ nguyên avatar giả
+        const dataFromAPI = await fetchAllGuests();
+        const transformed = dataFromAPI.map((g, index) => ({
+          index,
+          name: g.fullname,
+          id: g.id_card,
+          type: g.guest_type_id === 1 ? "domestic" : "international",
+          status: g.status, 
         }));
-        
-        setGuests(transformedGuests);
+        setGuest(transformed);
         setError(null);
       } catch (err) {
-        setError(err.message);
         console.error("Failed to fetch guests:", err);
+        setError("Failed to fetch guests");
       } finally {
         setIsLoading(false);
       }
     };
-
     loadGuests();
-  }, []); // Mảng rỗng đảm bảo chỉ chạy 1 lần khi component được mount
+  }, []);
 
   const StatusBadge = ({ status }) => {
-    const className = `status-badge status-${status?.toLowerCase()}`;
-    return <span className={className}>{status}</span>;
+    const label =
+      status && typeof status === "string"
+        ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+        : "Unknown";
+    const className = `status-badge ${
+      label.toLowerCase() === "staying"
+        ? "status-staying"
+        : label.toLowerCase() === "upcoming"
+        ? "status-upcoming"
+        : "status-left"
+    }`;
+    return <span className={className}>{label}</span>;
   };
 
-  const filteredGuests = guests.filter((guest) => {
-      const query = search.toLowerCase();
-      const matchSearch = guest.name.toLowerCase().includes(query) || String(guest.id).toLowerCase().includes(query);
-      const matchType = selectedType === "all" || guest.type === selectedType;
-      return matchSearch && matchType;
-    });
+  const filteredGuests = guest.filter((g) => {
+    const query = search.toLowerCase();
+    const matchSearch =
+      g.name.toLowerCase().includes(query) || g.id.toLowerCase().includes(query);
+    const matchType = selectedType === "all" || g.type === selectedType;
+    return matchSearch && matchType;
+  });
 
   return (
     <div className="rooms-container">
@@ -80,12 +82,12 @@ export default function Guests() {
             International
           </button>
         </div>
-        
-        <div className="rheader">
+
+        <div className="room-header">
           <input
             type="text"
             placeholder="Search by name or ID"
-            className="rsearch-input"
+            className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -93,35 +95,26 @@ export default function Guests() {
       </div>
 
       <div className="rtable-container">
-        {/* 5. Thêm hiển thị cho trạng thái loading và lỗi */}
         {isLoading && <p className="text-center p-4">Loading guests...</p>}
         {error && <p className="text-center p-4 text-red-500">Error: {error}</p>}
+
         {!isLoading && !error && (
-            <table className="table">
+          <table className="table">
             <thead>
               <tr>
                 <th>Guest</th>
                 <th>ID</th>
-                <th>Address</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {filteredGuests.length > 0 ? (
-                filteredGuests.map((guest) => (
-                  <tr key={guest.index}>
-                    <td className="guest">
-                      {/* <img
-                        src={guest.avatar}
-                        alt={guest.name}
-                        className="w-8 h-8 rounded-full"
-                      /> */}
-                      {guest.name}
-                    </td>
-                    <td>{guest.id}</td>
-                    <td>{guest.address}</td>
+                filteredGuests.map((g) => (
+                  <tr key={g.index}>
+                    <td className="guest">{g.name}</td>
+                    <td>{g.id}</td>
                     <td>
-                      <StatusBadge status={guest.status} />
+                      <StatusBadge status={g.status} />
                     </td>
                   </tr>
                 ))
