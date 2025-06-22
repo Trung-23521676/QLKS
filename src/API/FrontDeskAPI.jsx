@@ -43,7 +43,7 @@ export const getBookingById = async (bookingId) => {
  * @returns {Promise<Object>} Booking vừa được tạo.
  */
 export const createBooking = async (bookingData) => {
-  const response = await fetch("/api/frontdesk/create-booking", {
+  const response = await fetch("/api/frontdesk/booking", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

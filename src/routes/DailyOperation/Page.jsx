@@ -6,9 +6,9 @@ import { getAllBookings, getBookingById } from "../../API/FrontDeskAPI";
 
 const bookingBarStyles = {
   "Due In": { head: "bg-yellow-500 text-white", tail: "bg-yellow-100 text-yellow-800" },
-  "Check in": { head: "bg-green-500 text-white", tail: "bg-green-100 text-green-800" },
-  "Due out": { head: "bg-orange-500 text-white", tail: "bg-orange-100 text-orange-800" },
-  "Check out": { head: "bg-blue-500 text-white", tail: "bg-blue-100 text-blue-800" },
+  "Check In": { head: "bg-green-500 text-white", tail: "bg-green-100 text-green-800" },
+  "Due Out": { head: "bg-orange-500 text-white", tail: "bg-orange-100 text-orange-800" },
+  "Check Out": { head: "bg-blue-500 text-white", tail: "bg-blue-100 text-blue-800" },
 };
 const legendStyles = {
   "Due in": "bg-yellow-100 text-yellow-700 border-yellow-300",
@@ -147,11 +147,25 @@ export default function FrontDeskPage() {
     const effectiveStartDate = new Date(Math.max(bookingStart.getTime(), firstDisplayedDate.getTime()));
     const effectiveEndDate = new Date(Math.min(bookingEnd.getTime(), lastDisplayedDate.getTime()));
     
-    let durationInDays = (effectiveEndDate.getTime() - effectiveStartDate.getTime()) / dayInMillis + 1;
+    let durationInDays;
+
+    // Check if the booking's true end date is later than the last day of the current month view.
+    // - bookingEnd is the original end date of the booking (e.g., July 3rd).
+    // - lastDisplayedDate is the end of the current calendar view (e.g., June 30th).
+    if (bookingEnd.getTime() > lastDisplayedDate.getTime()) {
+      // This is a "pass-through" month. The booking continues into the next month.
+      // Per your request, we do NOT add +1.
+      // The duration will be calculated to go exactly to the month's edge.
+      durationInDays = (effectiveEndDate.getTime() - effectiveStartDate.getTime()) / dayInMillis;
+    } else {
+      // This is the month where the booking actually ends.
+      // Add the +1 to make the final day inclusive.
+      durationInDays = (effectiveEndDate.getTime() - effectiveStartDate.getTime()) / dayInMillis + 1;
+    }
     
     const offsetInDays = (effectiveStartDate.getTime() - firstDisplayedDate.getTime()) / dayInMillis;
     const leftPosition = offsetInDays * dayCellWidth;
-    const width = durationInDays * dayCellWidth - 4; // -4 for padding
+    const width = durationInDays * dayCellWidth ; // -4 for padding
 
     const bookingBarHeight = 40;
     const rowHeight = 52;

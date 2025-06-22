@@ -1,21 +1,21 @@
-// --- Các hàm trợ giúp để tái sử dụng ---
+// --- Helper Functions ---
 
-// Lấy token từ localStorage để xác thực các request
+// Gets the authentication token from local storage.
 const getAuthToken = () => localStorage.getItem("token");
 
-// Xử lý response chung, kiểm tra lỗi và parse JSON
+// Handles the server response, checking for errors and parsing JSON.
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})); // Bắt lỗi nếu response không phải JSON
-    throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP Error: ${response.status}`);
   }
   return response.json();
 };
 
-// --- Các hàm gọi API ---
+// --- API Functions ---
 
 /**
- * Lấy tất cả các phòng (không lọc).
+ * Fetches all rooms without any filters.
  */
 export const fetchRooms = async () => {
   const response = await fetch('/api/room', {
@@ -27,23 +27,37 @@ export const fetchRooms = async () => {
 };
 
 /**
- * Lấy danh sách các phòng trống dựa trên loại phòng.
- * @param {string} roomTypeId - ID của loại phòng.
- * @returns {Promise<Array>} Danh sách các phòng trống.
+ * Fetches available rooms by sending check-in/out dates and guest details
+ * to the backend recommendation controller.
+ * @param {object} criteria - The criteria for finding rooms (roomTypeId, checkIn, checkOut, adults, children).
+ * @returns {Promise<Array>} A list of suitable room IDs.
  */
-export const getAvailableRooms = async (roomTypeId) => {
-  // Gọi đến API /api/room với các query parameters để lọc
-  const response = await fetch(`/api/room?room_type_id=${roomTypeId}&is_booked=0`, {
+export const getAvailableRooms = async (criteria) => {
+  const { roomTypeId, checkIn, checkOut, adults, children } = criteria;
+
+  // FIXED: The URL now correctly points to the endpoint defined in your frontDeskRoute.js
+  const response = await fetch('/api/frontdesk/recommended-rooms', { 
+    method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${getAuthToken()}`,
     },
+    body: JSON.stringify({
+      room_type_id: roomTypeId,
+      check_in: checkIn,
+      check_out: checkOut,
+      adults: adults,
+      children: children,
+    }),
   });
-  return handleResponse(response);
+  
+  const data = await handleResponse(response);
+  return data.recommended_rooms || [];
 };
 
 /**
- * Tạo một phòng mới.
- * @param {Object} newRoom - Dữ liệu của phòng mới.
+ * Creates a new room.
+ * @param {Object} newRoom - Data for the new room.
  */
 export const createRoom = async (newRoom) => {
   const response = await fetch('/api/room', {
@@ -58,9 +72,9 @@ export const createRoom = async (newRoom) => {
 };
 
 /**
- * Cập nhật thông tin một phòng.
- * @param {string} roomId - ID của phòng cần cập nhật.
- * @param {Object} updatedRoom - Dữ liệu cập nhật.
+ * Updates a room's information.
+ * @param {string} roomId - The ID of the room to update.
+ * @param {Object} updatedRoom - The updated data.
  */
 export const updateRoom = async (roomId, updatedRoom) => {
   const response = await fetch(`/api/room/${roomId}`, {
@@ -75,8 +89,8 @@ export const updateRoom = async (roomId, updatedRoom) => {
 };
 
 /**
- * Xóa một phòng.
- * @param {string} roomId - ID của phòng cần xóa.
+ * Deletes a room.
+ * @param {string} roomId - The ID of the room to delete.
  */
 export const deleteRoom = async (roomId) => {
   const response = await fetch(`/api/room/${roomId}`, {
