@@ -1,5 +1,15 @@
 // API/ServiceRequestAPI.js
+// Lấy token từ localStorage để xác thực các request
+const getAuthToken = () => localStorage.getItem("token");
 
+// Xử lý response chung, kiểm tra lỗi và parse JSON
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({})); // Bắt lỗi nếu response không phải JSON
+    throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
+  }
+  return response.json();
+};
 // Lấy danh sách tất cả yêu cầu dịch vụ
 export const fetchServiceRequests = async () => {
   const res = await fetch("/api/serviceRequest");

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 
 import React, { useState, useEffect, useRef } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
@@ -186,6 +187,30 @@ export default function Guests() {
     avatar: "https://i.pravatar.cc/150?img=20",
   }
   ];
+=======
+import React, { useState, useEffect } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { fetchGuests } from "../../API/GuestAPI";
+import "./Guests.css";
+
+export default function Guests() {
+  const [search, setSearch] = useState("");
+  const [guest, setGuest] = useState([]);
+  const [selectedType, setSelectedType] = useState("all");
+
+  useEffect(() => {
+    const loadGuests = async () => {
+      try {
+        const data = await fetchGuests();
+        setGuest(data);
+      } catch (error) {
+        console.error("Failed to fetch guests:", error);
+        alert("Could not load guest list.");
+      }
+    };
+    loadGuests();
+  }, []);
+>>>>>>> Stashed changes
 
   const StatusBadge = ({ status }) => {
     const className = `status-badge ${
@@ -195,6 +220,7 @@ export default function Guests() {
         ? "status-left"
         : "status-staying"
     }`;
+<<<<<<< Updated upstream
     return <span className={className}>{status}</span>;
   };
 
@@ -216,6 +242,22 @@ export default function Guests() {
       return matchSearch && matchType;
     })
   : [];
+=======
+    const label = status.toLowerCase().charAt(0).toUpperCase() + status.toLowerCase().slice(1);
+    return <span className={className}>{label}</span>;
+  };
+
+  const filteredGuests = Array.isArray(guest)
+    ? guest.filter((guest) => {
+        const query = search.toLowerCase();
+        const matchSearch =
+          guest.name?.toLowerCase().includes(query) ||
+          guest.guest_id?.toString().includes(query);
+        const matchType = selectedType === (1 || 2) || guest.guest_type_id === selectedType;
+        return matchSearch && matchType;
+      })
+    : [];
+>>>>>>> Stashed changes
 
   return (
     <div className="rooms-container">
@@ -224,6 +266,7 @@ export default function Guests() {
 
       <div className="labelsearch">
         <div>
+<<<<<<< Updated upstream
         <button
         className={`fbutton ${selectedType === "all" ? "selected" : "outline"}`}
         onClick={() => setSelectedType("all")}
@@ -246,6 +289,29 @@ export default function Guests() {
         </button>
         </div>
         
+=======
+          <button
+            className={`fbutton ${selectedType === (1 & 2) ? "selected" : "outline"}`}
+            onClick={() => setSelectedType((1 & 2))}
+          >
+            All
+          </button>
+
+          <button
+            className={`fbutton ${selectedType === 1 ? "selected" : "outline"}`}
+            onClick={() => setSelectedType(1)}
+          >
+            Domestic
+          </button>
+
+          <button
+            className={`fbutton ${selectedType === 2 ? "selected" : "outline"}`}
+            onClick={() => setSelectedType(2)}
+          >
+            International
+          </button>
+        </div>
+>>>>>>> Stashed changes
 
         <div className="room-header">
           <input
@@ -262,15 +328,22 @@ export default function Guests() {
         <table className="table">
           <thead>
             <tr>
+<<<<<<< Updated upstream
               <th>Guest</th>
               <th>ID</th>
               <th>Address</th>
+=======
+              <th>Name</th>
+              <th>ID</th>
+              {/* <th>Address</th> */}
+>>>>>>> Stashed changes
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredGuests.length > 0 ? (
               filteredGuests.map((guest, index) => (
+<<<<<<< Updated upstream
                 <tr key={guest.index}>
                   <td className="guest">
                     {/* <img
@@ -282,6 +355,12 @@ export default function Guests() {
                   </td>
                   <td>{guest.id}</td>
                   <td>{guest.address}</td>
+=======
+                <tr key={guest.guest_id || index}>
+                  <td style={{fontWeight: 'bold'}}>{guest.fullname}</td>
+                  <td>{guest.id_card}</td>
+                  {/* <td>{guest.address}</td> */}
+>>>>>>> Stashed changes
                   <td>
                     <StatusBadge status={guest.status} />
                   </td>

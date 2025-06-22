@@ -1,4 +1,15 @@
 // services/roomTypeAPI.js
+// Lấy token từ localStorage để xác thực các request
+const getAuthToken = () => localStorage.getItem("token");
+
+// Xử lý response chung, kiểm tra lỗi và parse JSON
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({})); // Bắt lỗi nếu response không phải JSON
+    throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
+  }
+  return response.json();
+};
 
 export const fetchRoomTypes = async () => {
   try {

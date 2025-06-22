@@ -6,15 +6,6 @@ import { deleteServiceRequest } from "../../API/ServiceAPI";
 export default function DeleteRequestModal({ request, isOpen, onClose, onSuccess }) {
   if (!isOpen || !request) return null;
 
-  const services = [
-    "Room Cleaning",
-    "Food Delivery",
-    "Laundry",
-    "Spa Booking",
-    "Wake-up Call",
-    "Taxi Booking",
-  ];
-
   const [roomNumber, setRoomNumber] = useState("");
   const [service, setService] = useState("");
   const [amount, setAmount] = useState("");
@@ -31,9 +22,9 @@ export default function DeleteRequestModal({ request, isOpen, onClose, onSuccess
 
   const handleDelete = async () => {
     try {
-      await deleteServiceRequest(request.request_id); // Gọi API xóa
-      if (onSuccess) onSuccess(); // Làm mới danh sách
-      onClose(); // Đóng modal
+      await deleteServiceRequest(request.request_id);
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (error) {
       console.error("Failed to delete request:", error);
       alert("Failed to delete request. Please try again.");
@@ -57,22 +48,7 @@ export default function DeleteRequestModal({ request, isOpen, onClose, onSuccess
 
           <div className="form-group">
             <label className="label">Service</label>
-            {/* <select className="select" value={service} disabled>
-              <option value="">-- Select a service --</option>
-              {services.map((srv, index) => (
-                <option key={index} value={srv}>
-                  {srv}
-                </option>
-              ))}
-            </select> */}
-            <input
-                type="text"
-                id="service"
-                placeholder="Enter service id"
-                className="input"
-                value={service}
-                onChange={e => setService(e.target.value)}
-                />
+            <input className="input" value={service} readOnly />
           </div>
 
           <div className="form-group">

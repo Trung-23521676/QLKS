@@ -1,8 +1,10 @@
 // src/routes/Login/Page.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeClosed } from "lucide-react";
 
 export default function LoginPage() {
+<<<<<<< Updated upstream
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -10,6 +12,59 @@ export default function LoginPage() {
   const handleLogin = () => {
     console.log("Login with", phone, password);
     navigate("/");
+=======
+  // --- Thêm state để quản lý lỗi, trạng thái loading và hiển thị mật khẩu ---
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // <-- NEW: State để ẩn/hiện mật khẩu
+  const navigate = useNavigate();
+
+  // --- Hàm chuyển đổi trạng thái hiển thị mật khẩu ---
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // --- Cập nhật hàm handleLogin ---
+  const handleLogin = async () => {
+    // Reset lỗi cũ và bắt đầu loading
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Gọi API đến backend qua proxy của Vite
+      const response = await fetch("/api/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier: phone, password }),
+      });
+      // Lấy dữ liệu JSON từ response
+      const data = await response.json();
+      
+      // Nếu response không thành công (vd: sai pass), backend sẽ trả về lỗi
+      if (!response.ok) {
+        // Ném lỗi với message từ backend
+        throw new Error(data.message || "Đăng nhập thất bại.");
+      }
+      
+      // Nếu đăng nhập thành công:
+      // 1. Lưu token vào localStorage
+      localStorage.setItem("token", data.token);
+      
+      console.log('sos');
+      // 2. Điều hướng đến trang chính, thay thế trang login trong lịch sử trình duyệt
+      navigate("/", { replace: true });
+    } catch (err) {
+      // Bắt lỗi từ network hoặc từ backend và hiển thị cho người dùng
+      setError(err.message);
+    } finally {
+      // Dừng loading dù thành công hay thất bại
+      setIsLoading(false);
+    }
+>>>>>>> Stashed changes
   };
 
   return (
@@ -53,18 +108,31 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password input */}
-          <div className="mb-8">
+          {/* Password input with toggle button */}
+          <div className="mb-8 relative"> {/* <-- Thêm relative cho container */}
             <label className="block text-black text-base mb-1">
               Enter your Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"} 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full h-14 px-6 bg-white rounded-[10px] border border-gray-500 text-sm text-zinc-700 font-light focus:outline-none"
+              className="w-full h-14 px-6 bg-white rounded-[10px] border border-gray-500 text-sm text-zinc-700 font-light focus:outline-none pr-12" // <-- Thêm padding phải để icon không bị che
             />
+            <button
+              type="button" // Quan trọng: set type="button" để tránh submit form
+              onClick={toggleShowPassword}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center pt-6 text-gray-500 hover:text-gray-700 focus:outline-none" // <-- Đặt icon button
+            >
+              {showPassword ? (
+                // Icon mắt đóng (hide password)
+               <Eye size={24} strokeWidth={1.5} color="currentColor" />
+              ) : (
+                // Icon mắt mở (show password)
+                <EyeClosed size={24} strokeWidth={1.5} color="currentColor" />
+              )}
+            </button>
           </div>
 
           {/* Sign in button */}
