@@ -60,7 +60,7 @@ function App() {
           element: <Reservations />,
         },
         {
-          path: "Reservations/:bookingId",
+          path: "/Reservations/:reservation_id",
           element: <ReservationDetail />,
         },
         {

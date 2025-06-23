@@ -1,18 +1,18 @@
-// src/API/ReservationAPI.js
-
+// This function gets the authentication token from local storage.
 const getAuthToken = () => localStorage.getItem("token");
 
+// This function handles the response from the server, checking for errors.
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: `Lỗi HTTP: ${response.status}` }));
+    const errorData = await response.json().catch(() => ({ message: `HTTP Error: ${response.status}` }));
     throw new Error(errorData.message);
   }
   return response.json();
 };
 
+// SỬA LỖI: Trỏ đến đúng API của reservations
 export const getAllReservations = async () => {
-  // Sử dụng lại endpoint đã có
-  const response = await fetch("/api/frontdesk/bookings", {
+  const response = await fetch("/api/reservation", {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
@@ -20,8 +20,9 @@ export const getAllReservations = async () => {
   return handleResponse(response);
 };
 
-export const getReservationById = async (bookingId) => {
-  const response = await fetch(`/api/frontdesk/booking/${bookingId}`, {
+// SỬA LỖI: Trỏ đến đúng API của reservations và dùng đúng tham số
+export const getReservationById = async (reservationId) => {
+  const response = await fetch(`/api/reservation/${reservationId}`, {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
@@ -29,14 +30,28 @@ export const getReservationById = async (bookingId) => {
   return handleResponse(response);
 };
 
-export const updateReservation = async (bookingId, updatedData) => {
-  const response = await fetch(`/api/frontdesk/booking/${bookingId}`, {
+// SỬA LỖI: Trỏ đến đúng API của reservations và dùng đúng tham số
+export const updateReservation = async (reservationId, updatedData) => {
+  const response = await fetch(`/api/reservation/${reservationId}`, {
     method: 'PUT',
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${getAuthToken()}`,
     },
     body: JSON.stringify(updatedData),
+  });
+  return handleResponse(response);
+};
+
+// Thêm hàm tạo reservation mới
+export const createReservation = async (reservationData) => {
+  const response = await fetch("/api/reservation", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify(reservationData),
   });
   return handleResponse(response);
 };
