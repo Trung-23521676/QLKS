@@ -332,7 +332,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
             <button type="button" onClick={onClose} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50">
               Cancel
             </button>
-            <button type="button" onClick={(e) => handleSubmit(e, 'Check In')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
+            <button type="button" onClick={(e) => handleSubmit(e, 'Checked In')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
               {isLoading ? 'Saving...' : 'Save & check in'}
             </button>
             <button type="button" onClick={(e) => handleSubmit(e, 'Due In')} disabled={isLoading} className="px-6 py-2 bg-yellow-500 text-white rounded-full font-semibold hover:bg-yellow-600 disabled:opacity-50">

@@ -1,15 +1,17 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react"; // MODIFIED: Imported useCallback
 import "./FrontDesk.css";
 import CreateBookingModal from "./CreateBooking";
 import BookingDetail from "./BookingDetail"; 
 import { getAllBookings, getBookingById } from "../../API/FrontDeskAPI";
 
+// These parts outside the component remain the same
 const bookingBarStyles = {
   "Due In": { head: "bg-yellow-500 text-white", tail: "bg-yellow-100 text-yellow-800" },
-  "Check In": { head: "bg-green-500 text-white", tail: "bg-green-100 text-green-800" },
+  "Checked In": { head: "bg-green-500 text-white", tail: "bg-green-100 text-green-800" },
   "Due Out": { head: "bg-orange-500 text-white", tail: "bg-orange-100 text-orange-800" },
-  "Check Out": { head: "bg-blue-500 text-white", tail: "bg-blue-100 text-blue-800" },
+  "Checked Out": { head: "bg-blue-500 text-white", tail: "bg-blue-100 text-blue-800" },
 };
+// ... (rest of styles and helper functions)
 const legendStyles = {
   "Due in": "bg-yellow-100 text-yellow-700 border-yellow-300",
   "Check in": "bg-green-100 text-green-700 border-green-300",
@@ -41,7 +43,6 @@ function assignRows(bookings) {
 }
 
 const BookingBar = ({ booking, isStartVisible, isEndVisible }) => {
-  console.log(`Booking ID: ${booking.id}, Status từ Database là: '${booking.status}'`);
   const styles = bookingBarStyles[booking.status] || {};
   const headWidth = 80;
   const headClasses = isStartVisible ? 'rounded-l-full' : '';
@@ -57,6 +58,7 @@ const BookingBar = ({ booking, isStartVisible, isEndVisible }) => {
     </div>
   );
 };
+
 
 export default function FrontDeskPage() {
   const [bookings, setBookings] = useState([]);
@@ -74,30 +76,35 @@ export default function FrontDeskPage() {
   const [search, setSearch] = useState("");
   const bookingGridScrollRef = useRef(null);
 
+  // --- MODIFIED SECTION ---
+  // The function is now defined in the component's main scope and wrapped in useCallback
+  const fetchAndProcessBookings = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllBookings();
+      const transformedData = data.map(b => ({
+        id: b.booking_id,
+        guest: b.guest_fullname,
+        room: b.room_id,
+        startDate: new Date(b.check_in),
+        endDate: new Date(b.check_out),
+        status: b.status,
+      }));
+      setBookings(assignRows(transformedData));
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Failed to fetch bookings:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // The dependency array is empty because it doesn't depend on any props or state
+
+  // The useEffect hook is now much simpler. It just calls the function.
   useEffect(() => {
-    const fetchAndProcessBookings = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getAllBookings();
-        const transformedData = data.map(b => ({
-          id: b.booking_id,
-          guest: b.guest_fullname,
-          room: b.room_id,
-          startDate: new Date(b.check_in),
-          endDate: new Date(b.check_out),
-          status: b.status,
-        }));
-        setBookings(assignRows(transformedData));
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-        console.error("Failed to fetch bookings:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchAndProcessBookings();
-  }, []);
+  }, [fetchAndProcessBookings]);
+  // --- END OF MODIFIED SECTION ---
 
   const handleBookingClick = async (bookingId) => {
     try {
@@ -148,24 +155,16 @@ export default function FrontDeskPage() {
     const effectiveEndDate = new Date(Math.min(bookingEnd.getTime(), lastDisplayedDate.getTime()));
     
     let durationInDays;
-
-    // Check if the booking's true end date is later than the last day of the current month view.
-    // - bookingEnd is the original end date of the booking (e.g., July 3rd).
-    // - lastDisplayedDate is the end of the current calendar view (e.g., June 30th).
+    
     if (bookingEnd.getTime() > lastDisplayedDate.getTime()) {
-      // This is a "pass-through" month. The booking continues into the next month.
-      // Per your request, we do NOT add +1.
-      // The duration will be calculated to go exactly to the month's edge.
       durationInDays = (effectiveEndDate.getTime() - effectiveStartDate.getTime()) / dayInMillis;
     } else {
-      // This is the month where the booking actually ends.
-      // Add the +1 to make the final day inclusive.
       durationInDays = (effectiveEndDate.getTime() - effectiveStartDate.getTime()) / dayInMillis + 1;
     }
     
     const offsetInDays = (effectiveStartDate.getTime() - firstDisplayedDate.getTime()) / dayInMillis;
     const leftPosition = offsetInDays * dayCellWidth;
-    const width = durationInDays * dayCellWidth ; // -4 for padding
+    const width = durationInDays * dayCellWidth; 
 
     const bookingBarHeight = 40;
     const rowHeight = 52;
@@ -188,9 +187,9 @@ export default function FrontDeskPage() {
   };
 
   return (
-    <div className="flex flex-col h-full  font-sans">
+    <div className="flex flex-col h-full font-sans">
       <div className="flex-shrink-0">
-        <p className="name  ">Front Desk</p>
+        <p className="name">Front Desk</p>
         <div className="labeldash">___________</div>
       </div>
       <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
@@ -270,9 +269,10 @@ export default function FrontDeskPage() {
           )}
         </div>
       </div>
-
+      
+      {/* This prop passing is now correct */}
       {isCreateBookingModalOpen && <CreateBookingModal isOpen={isCreateBookingModalOpen} onClose={() => setIsCreateBookingModalOpen(false)} />}
-      {selectedBooking && <BookingDetail isOpen={!!selectedBooking} onClose={() => setSelectedBooking(null)} booking={selectedBooking} />}
+      {selectedBooking && <BookingDetail isOpen={!!selectedBooking} onClose={() => setSelectedBooking(null)} booking={selectedBooking} onBookingUpdate={fetchAndProcessBookings} />}
     </div>
   );
 }

@@ -53,3 +53,21 @@ export const createBooking = async (bookingData) => {
   });
   return handleResponse(response);
 };
+
+ /**
+ * Cập nhật một booking hiện có bằng ID.
+ * @param {string|number} bookingId - ID của booking cần cập nhật.
+ * @param {Object} bookingData - Dữ liệu mới để cập nhật cho booking.
+ * @returns {Promise<Object>} Booking sau khi đã được cập nhật.
+ */
+export const updateBooking = async (bookingId, bookingData) => {
+  const response = await fetch(`/api/frontdesk/booking/${bookingId}`, {
+    method: 'PUT', // Use PUT for updating an existing resource
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify(bookingData),
+  });
+  return handleResponse(response);
+};
