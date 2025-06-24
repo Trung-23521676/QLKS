@@ -7,8 +7,22 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+/*
+ * Lấy danh sách tất cả các roomTypes.
+ * @returns {Promise<Array>} Danh sách các roomTypes.
+ */
+export const getAllRoomTypes = async () => {
+  const response = await fetch("/api/prices/roomType", {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  });
+  return handleResponse(response);
+};
+
+
 export const getRoomTypeById = async (roomTypeId) => {
-  const response = await fetch(`/api/prices/roomtype/details/${roomTypeId}`, { // Assumes /api/roomtype prefix
+  const response = await fetch(`/api/prices/roomType/details/${roomTypeId}`, { // Assumes /api/roomtype prefix
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },

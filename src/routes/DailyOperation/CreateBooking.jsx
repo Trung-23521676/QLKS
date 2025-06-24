@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { createBooking } from '../../API/FrontDeskAPI'; 
-import { createReservation } from '../../API/ReservationAPI'; // ADDED: Import function to create a reservation
+import { createBooking } from '../../API/FrontDeskAPI';
 import { getAvailableRooms } from '../../API/RoomAPI';
-import { getRoomTypeById } from '../../API/RoomTypeAPI';
+// Giả định có một hàm để lấy tất cả các loại phòng
+import { getRoomTypeById, getAllRoomTypes } from '../../API/RoomTypeAPI'; 
 import useDebounce from '../../hooks/DeBounce';
 
 const CreateBookingModal = ({ isOpen, onClose }) => {
@@ -30,6 +30,23 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
   const [isFetchingRooms, setIsFetchingRooms] = useState(false);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
   const debouncedRoomTypeId = useDebounce(roomTypeId, 500);
+
+  // --- START: MODIFICATION 1 ---
+  const [allRoomTypes, setAllRoomTypes] = useState([]);
+
+  // Effect to fetch all room types on component mount
+  useEffect(() => {
+    const fetchAllRoomTypes = async () => {
+      try {
+        const types = await getAllRoomTypes(); // Giả định API này tồn tại
+        setAllRoomTypes(types || []);
+      } catch (err) {
+        console.error("Failed to fetch all room types:", err);
+      }
+    };
+    fetchAllRoomTypes();
+  }, []);
+  // --- END: MODIFICATION 1 ---
 
   // --- Effect to fetch room data when dependencies change ---
   useEffect(() => {
@@ -117,7 +134,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
       children: parseInt(children || 0, 10),
       payment_method: paymentMethod,
       status: status,
-      nightly_rate: nightlyRate, 
+      nightly_rate: nightlyRate,
       companions: companions.map(c => ({
           fullname: c.fullname,
           id_card: c.idNumber,
@@ -125,39 +142,6 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
           guest_type_id: c.guest_type_id,
       })),
     };
-    try {
-      // Step 1: Create the primary booking.
-      const newBooking = await createBooking(bookingData);
-
-      // Step 2: If booking is successful, create a corresponding reservation.
-      if (newBooking) {
-        const reservationData = {
-            guest_fullname: bookingData.guest_fullname,
-            guest_phone: bookingData.guest_phone,
-            guest_email: bookingData.guest_email,
-            guest_address: bookingData.guest_address,
-            guest_type_id: bookingData.guest_type_id,
-            check_in: bookingData.check_in,
-            check_out: bookingData.check_out,
-            room_type_id: bookingData.room_type_id,
-            number_of_rooms: 1, // CreateBooking modal handles one room
-            adults: bookingData.adults,
-            children: bookingData.children,
-            reservation_note: 'Created from direct booking at front desk.',
-            status: 'Confirmed', // A direct booking is considered confirmed
-            assigned_room: bookingData.room_id,
-        };
-        await createReservation(reservationData);
-      }
-
-      alert('Booking and Reservation created successfully!');
-      onClose();
-      window.location.reload();
-    } catch (err) {
-      setError(err.message || "An unknown error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // --- Derived State for UI Logic ---
@@ -191,7 +175,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select value={guestTypeId} onChange={(e) => setGuestTypeId(parseInt(e.target.value, 10))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
-                  <option value={1}>Domestic</option>
+                  <option value={1}>National</option>
                   <option value={2}>International</option>
                 </select>
               </div>
@@ -216,10 +200,24 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
                     <input required type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
                 </div>
+                {/* --- START: MODIFICATION 2 --- */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Room Type ID</label>
-                    <input required type="text" placeholder="e.g., RT01" value={roomTypeId} onChange={(e) => setRoomTypeId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                    <select 
+                      required 
+                      value={roomTypeId} 
+                      onChange={(e) => setRoomTypeId(e.target.value)} 
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                    >
+                        <option value="">Select a Room Type</option>
+                        {allRoomTypes.map(type => (
+                            <option key={type.room_type_id} value={type.room_type_id}>
+                                {type.room_type_id} 
+                            </option>
+                        ))}
+                    </select>
                 </div>
+                {/* --- END: MODIFICATION 2 --- */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
                     <input required type="number" placeholder="Number of adults" min="1" value={adults} onChange={(e) => setAdults(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
@@ -296,7 +294,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                     <select value={companion.guest_type_id} onChange={(e) => handleCompanionChange(companion.id, 'guest_type_id', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                      <option value={1}>Domestic</option>
+                      <option value={1}>National  </option>
                       <option value={2}>International</option>
                     </select>
                   </div>
