@@ -1,10 +1,29 @@
 const API_BASE = "/api/report"; // đổi nếu bạn deploy ở nơi khác
 
-// 1. Lấy thống kê Check-in / Check-out
-export const fetchCheckInOutOverview = async () => {
-  const res = await fetch(`${API_BASE}/CheckInOut`);
-  if (!res.ok) throw new Error("Failed to fetch check-in/out stats");
-  return await res.json();
+// Fetch số lượng booking trong tháng (check-in đã xảy ra)
+export const fetchCheckIn = async () => {
+  try {
+    const response = await fetch(`${API_BASE}/BookingStats`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    const data = await response.json(); // ✅ parse JSON
+    return data; // { total_bookings: number }
+  } catch (error) {
+    console.error("Error fetching booking stats:", error);
+    throw error;
+  }
+};
+
+// Fetch số lượng khách nước ngoài trong tháng
+export const fetchInternationalGuest = async () => {
+  try {
+    const response = await fetch(`${API_BASE}/InternationalGuestStats`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    const data = await response.json(); // ✅ parse JSON
+    return data; // { international_guests: number }
+  } catch (error) {
+    console.error("Error fetching international guest stats:", error);
+    throw error;
+  }
 };
 
 // 2. Lấy thống kê theo loại phòng
