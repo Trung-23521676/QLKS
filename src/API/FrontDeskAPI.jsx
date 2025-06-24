@@ -29,7 +29,7 @@ export const getAllBookings = async () => {
  * @returns {Promise<Object>} Chi tiết của booking.
  */
 export const getBookingById = async (bookingId) => {
-  const response = await fetch(`/api/frontdesk/booking/${bookingId}`, {
+  const response = await fetch(`/api/frontdesk/bookings/${bookingId}`, {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },

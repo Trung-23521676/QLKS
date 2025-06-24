@@ -249,8 +249,6 @@ export default function ReservationDetail() {
                 <option value="Confirmed">Confirmed</option>
                 <option value="Declined">Declined</option>
             </select>
-            <p className="text-sm font-medium text-gray-500 mt-4">Thay đổi lần cuối</p>
-            <p className="text-base text-gray-800">{formatFullDate(reservation.updated_at)}</p>
           </div>
           <div className="w-full md:w-px bg-gray-200 mx-auto md:mx-0 h-px md:h-auto"></div>
           <div className="md:w-1/2 md:pl-6 mt-6 md:mt-0">
