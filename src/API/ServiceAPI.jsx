@@ -1,4 +1,3 @@
-// API/ServiceRequestAPI.js
 
 // Lấy danh sách tất cả yêu cầu dịch vụ
 export const fetchServiceRequests = async () => {
