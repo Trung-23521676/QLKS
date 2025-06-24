@@ -116,3 +116,42 @@ export const deleteRoomByRoomType = async (roomTypeId, roomId) => {
   if (!response.ok) throw new Error("Failed to delete room");
   return await response.json();
 };
+
+
+// Lấy tất cả guest types
+export const fetchGuestTypes = async () => {
+  const res = await fetch(`/api/prices/guestType`);
+  if (!res.ok) throw new Error('Failed to fetch guest types');
+  return await res.json();
+};
+
+// Tạo mới guest type
+export const createGuestType = async (data) => {
+  const res = await fetch(`/api/prices/guestType`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to create guest type');
+  return await res.json();
+};
+
+// Cập nhật guest type
+export const updateGuestType = async (id, data) => {
+  const res = await fetch(`/api/prices/guestType/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update guest type');
+  return await res.json();
+};
+
+// Xóa guest type
+export const deleteGuestType = async (id) => {
+  const res = await fetch(`/api/prices/guestType/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete guest type');
+  return await res.json();
+};
