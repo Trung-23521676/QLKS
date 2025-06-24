@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { updateBooking } from '../../API/FrontDeskAPI';
+import { updateBooking, deleteBookingById } from '../../API/FrontDeskAPI';
+import { getAllGuestTypes } from '../../API/GuestTypeAPI';
+import { getInvoiceByBookingId } from '../../API/invoiceAPI';
 
 const statusStyles = {
   "Due In": "bg-yellow-100 text-yellow-800 border-yellow-400",
@@ -8,38 +10,120 @@ const statusStyles = {
   "Checked Out": "bg-blue-100 text-blue-800 border-blue-400",
 };
 
+const EditableField = ({ label, name, value, onChange, type = 'text', readOnly = false }) => (
+    <div>
+        <label className="text-xs font-semibold text-slate-500 block mb-1 tracking-wider">{label}</label>
+        <input
+            type={type}
+            name={name}
+            value={value ?? ''}
+            onChange={onChange}
+            readOnly={readOnly}
+            className={`w-full p-3 rounded-lg font-medium text-slate-700 border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${readOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-white'}`}
+        />
+    </div>
+);
+
+const InvoiceLineItem = ({ label, amount, isBold = false }) => (
+    <div className={`flex justify-between items-center ${isBold ? 'font-bold text-slate-800 text-base' : 'text-slate-600'}`}>
+        <span>{label}</span>
+        <span className="font-medium">{(parseFloat(amount) || 0).toLocaleString('vi-VN')}</span>
+    </div>
+);
+
+
 export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdate }) {
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [editableBooking, setEditableBooking] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
+  
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const statusMenuRef = useRef(null);
+  
+  const [isGuestTypeOpen, setIsGuestTypeOpen] = useState(false);
+  const guestTypeMenuRef = useRef(null);
+  const guestTypeOptions = ['National', 'International'];
+  const [allGuestTypes, setAllGuestTypes] = useState([]);
+
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
+
+   useEffect(() => {
+    const fetchGuestTypes = async () => {
+        try {
+            const types = await getAllGuestTypes();
+            setAllGuestTypes(types);
+        } catch (error) {
+            console.error("Không thể tải danh sách loại khách:", error);
+            setError("Không thể tải danh sách loại khách.");
+        }
+    };
+    fetchGuestTypes();
+  }, []);
 
   useEffect(() => {
     if (booking) {
-      setSelectedStatus(booking.status);
+      setEditableBooking({ ...booking });
+      setInvoiceData(null); 
+      if (booking.status === 'Checked Out') {
+        fetchInvoiceData(booking.booking_id);
+      }
     }
   }, [booking]);
+
+  useEffect(() => {
+    if (editableBooking?.status === 'Checked Out' && !invoiceData && !isInvoiceLoading) {
+        fetchInvoiceData(editableBooking.booking_id);
+    }
+  }, [editableBooking?.status]);
+  
+  const fetchInvoiceData = async (bookingId) => {
+    setIsInvoiceLoading(true);
+    setError('');
+    try {
+      const data = await getInvoiceByBookingId(bookingId);
+      setInvoiceData(data.invoice);
+    } catch (err) {
+      setError('Could not load invoice data.');
+      console.error(err);
+    } finally {
+      setIsInvoiceLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (statusMenuRef.current && !statusMenuRef.current.contains(event.target)) {
         setIsStatusMenuOpen(false);
       }
+      if (guestTypeMenuRef.current && !guestTypeMenuRef.current.contains(event.target)) {
+        setIsGuestTypeOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [statusMenuRef]);
+  }, [statusMenuRef, guestTypeMenuRef]);
 
-  if (!isOpen || !booking) {
+  if (!isOpen || !editableBooking) {
     return null;
   }
   
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditableBooking(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleStatusChange = (newStatus) => {
-    setSelectedStatus(newStatus);
+    setEditableBooking(prev => ({ ...prev, status: newStatus }));
     setIsStatusMenuOpen(false);
+  };
+
+ const handleGuestTypeChange = (newTypeName) => {
+    setEditableBooking(prev => ({ ...prev, guest_type_name: newTypeName }));
+    setIsGuestTypeOpen(false);
   };
   
   const handleConfirmChanges = async () => {
@@ -47,8 +131,8 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
     setIsUpdating(true);
     setError('');
     try {
-      const updatedData = { ...booking, status: selectedStatus };
-      await updateBooking(booking.booking_id, updatedData);
+      // Gửi toàn bộ editableBooking, bao gồm cả guest_type_name mới
+      await updateBooking(booking.booking_id, editableBooking); //
       if (onBookingUpdate) {
         onBookingUpdate();
       }
@@ -59,30 +143,28 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
       setIsUpdating(false);
     }
   };
+  const handleDeleteBooking = async () => {
+    // Hỏi xác nhận trước khi thực hiện hành động nguy hiểm
+    if (!window.confirm('Bạn có chắc chắn muốn xóa đặt phòng này không? Hành động này không thể hoàn tác.')) {
+      return;
+    }
+
+    setIsUpdating(true);
+    setError('');
+    try {
+      await deleteBookingById(booking.booking_id);
+      alert('Xóa đặt phòng thành công!');
+      onBookingUpdate(); // Gọi callback để làm mới danh sách booking ở component cha
+      onClose();       // Đóng modal sau khi xóa thành công
+    } catch (err) {
+      setError(err.message || 'Xóa đặt phòng thất bại.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const possibleStatuses = ['Due In', 'Checked In', 'Due Out', 'Checked Out'];
-  
-  const formatDate = (date) => new Date(date).toLocaleDateString('en-GB');
-  const formatCurrency = (amount) => (amount || 0).toLocaleString('vi-VN');
-  const nights = Math.ceil((new Date(booking.check_out) - new Date(booking.check_in)) / (1000*60*60*24)) || 1;
-  const roomTotal = (booking.nightly_rate || 0) * nights;
-  const total = roomTotal + (roomTotal * 0.10);
-
-  // --- MOVED HELPER COMPONENTS INSIDE TO FIX THE ERROR ---
-  const InputField = ({ label, value }) => (
-    <div className="bg-slate-50 p-3 rounded-lg w-full">
-        <label className="text-xs text-slate-400 block mb-1">{label}</label>
-        <p className="font-medium text-slate-700 truncate">{value || 'N/A'}</p>
-    </div>
-  );
-
-  const InvoiceLineItem = ({ label, amount }) => (
-    <div className="flex justify-between items-center text-slate-600">
-        <span>{label}</span>
-        <span className="font-medium">{amount.toLocaleString('vi-VN')}</span>
-    </div>
-  );
-  // --- END OF MOVED SECTION ---
+  const formatDateForInput = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-lg flex justify-center items-center z-50" onClick={onClose}>
@@ -94,37 +176,63 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
           </button>
         </div>
         <div className="flex flex-col md:flex-row gap-8 p-4">
-          <div className="w-full md:w-3/5 space-y-6">
-            {/* Guest, Reservation, Payment sections are unchanged */}
+          <div className={`w-full ${editableBooking.status === 'Checked Out' ? 'md:w-3/5' : 'md:w-full'} space-y-6 transition-all duration-300`}>
+            
+            {/* --- SECTION: GUEST --- */}
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">GUEST</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="Fullname" value={booking.guest_fullname} />
-                    <InputField label="ID" value={booking.guest_id_card} />
-                    <InputField label="Phone" value={booking.guest_phone} />
-                    <InputField label="Email" value={booking.guest_email} />
-                    <InputField label="Type" value={booking.guest_type_name} />
+                    <EditableField label="Fullname" name="guest_fullname" value={editableBooking.guest_fullname} onChange={handleChange} />
+                    <EditableField label="ID Card" name="guest_id_card" value={editableBooking.guest_id_card} onChange={handleChange} />
+                    <EditableField label="Phone" name="guest_phone" value={editableBooking.guest_phone} onChange={handleChange} />
+                    <EditableField label="Email" name="guest_email" value={editableBooking.guest_email} onChange={handleChange} type="email" />
+                    <div className="relative" ref={guestTypeMenuRef}>
+                        <label className="text-xs font-semibold text-slate-500 block mb-1 tracking-wider">Type</label>
+                        <button type="button" onClick={() => setIsGuestTypeOpen(!isGuestTypeOpen)} className="w-full p-3 rounded-lg font-medium text-left text-slate-700 border border-slate-200 bg-white flex justify-between items-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <span>{editableBooking.guest_type_name}</span>
+                            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        {isGuestTypeOpen && (
+                            <div className="absolute top-full mt-1 w-full bg-white rounded-md shadow-lg border z-20 py-1">
+                                {allGuestTypes.map(type => (
+                                    <button 
+                                        key={type.guest_type_id} 
+                                        type="button" 
+                                        onClick={() => handleGuestTypeChange(type.guest_type_name)} 
+                                        className={`block w-full text-left px-4 py-2 text-slate-700 transition-colors duration-150 ${editableBooking.guest_type_name === type.guest_type_name ? 'bg-blue-600 text-white' : 'hover:bg-blue-500 hover:text-white'}`}
+                                    >
+                                        {type.guest_type_name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {/* --- SECTION: RESERVATION --- */}
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">RESERVATION</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <InputField label="Check in" value={formatDate(booking.check_in)} />
-                    <InputField label="Room type" value={booking.room_type_name} />
-                    <InputField label="Adults" value={booking.adults} />
-                    <InputField label="Check out" value={formatDate(booking.check_out)} />
-                    <InputField label="Room no" value={booking.room_id} />
-                    <InputField label="Children" value={booking.children} />
+                    <EditableField label="Check in" name="check_in" value={formatDateForInput(editableBooking.check_in)} onChange={handleChange} type="date" readOnly={true} />
+                    <EditableField label="Room No" name="room_id" value={editableBooking.room_id} onChange={handleChange} readOnly={true} />
+                    <EditableField label="Adults" name="adults" value={editableBooking.adults} onChange={handleChange} type="number" readOnly={true} />
+                    <EditableField label="Check out" name="check_out" value={formatDateForInput(editableBooking.check_out)} onChange={handleChange} type="date" readOnly={true} />
+                    <EditableField label="Room Type" name="room_type_name" value={editableBooking.room_type_name} onChange={handleChange} readOnly={true} />
+                    <EditableField label="Children" name="children" value={editableBooking.children ?? 0} onChange={handleChange} type="number" readOnly={true} />
                 </div>
             </div>
+
+            {/* --- SECTION: PAYMENT --- */}
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">PAYMENT</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="Nightly rate" value={`${formatCurrency(booking.nightly_rate)} VND`} />
-                    <InputField label="Payment method" value={booking.payment_method} />
+                    <EditableField label="Nightly Rate (VND)" name="nightly_rate" value={editableBooking.nightly_rate} onChange={handleChange} type="number" readOnly={true} />
+                    <EditableField label="Payment Method" name="payment_method" value={editableBooking.payment_method} onChange={handleChange} readOnly={true} />
                 </div>
             </div>
-            
+
+            {/* --- SECTION: STATUS --- */}
             <div className="pt-2">
               <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">STATUS</p>
               {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
@@ -132,17 +240,17 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
                 <button
                   onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
                   disabled={isUpdating}
-                  className={`px-5 py-2 w-full sm:w-auto text-sm font-bold rounded-full border-2 transition-colors ${statusStyles[selectedStatus] || 'bg-gray-100 text-gray-800'}`}
+                  className={`px-5 py-2 w-full sm:w-auto text-sm font-bold rounded-full border-2 transition-colors ${statusStyles[editableBooking.status] || 'bg-gray-100 text-gray-800'}`}
                 >
-                  {selectedStatus}
+                  {editableBooking.status}
                 </button>
                 {isStatusMenuOpen && (
-                  <div className="absolute bottom-full mt-2 w-full sm:w-auto bg-white rounded-2xl shadow-lg border p-2 z-10 space-y-1">
+                  <div className="absolute bottom-full mb-2 w-full sm:w-auto bg-white rounded-2xl shadow-lg border p-2 z-10 space-y-1">
                     {possibleStatuses.map(status => (
                       <button
                         key={status}
                         onClick={() => handleStatusChange(status)}
-                        className={`px-5 py-2 w-full text-left text-sm font-bold rounded-xl transition-colors ${selectedStatus === status ? statusStyles[status] : 'hover:bg-slate-100 text-slate-700'}`}
+                        className={`px-5 py-2 w-full text-left text-sm font-bold rounded-xl transition-colors ${editableBooking.status === status ? statusStyles[status] : 'hover:bg-slate-100 text-slate-700'}`}
                       >
                         {status}
                       </button>
@@ -152,43 +260,72 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-3">
-              <button onClick={onClose} className="px-6 py-2 rounded-full font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Close</button>
-              <button onClick={handleConfirmChanges} disabled={isUpdating} className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-                {isUpdating ? 'Saving...' : 'Confirm'}
+            {/* --- SECTION: ACTION BUTTONS --- */}
+             <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center">
+              {/* Nút Xóa ở bên trái */}
+              <button
+                onClick={handleDeleteBooking}
+                disabled={isUpdating}
+                className="bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Delete Booking
               </button>
+
+              {/* Các nút xác nhận và đóng ở bên phải */}
+              <div className="flex gap-3">
+                <button onClick={onClose} className="px-6 py-2 rounded-full font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Close</button>
+                <button onClick={handleConfirmChanges} disabled={isUpdating} className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                  {isUpdating ? 'Saving...' : (editableBooking.status === 'Checked Out' ? 'Confirm and Print Invoice' : 'Confirm Changes')}
+                </button>
+              </div>
             </div>
           </div>
           
-          <div className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
-            <div className="text-center mb-4">
-              <h3 className="font-bold text-slate-800">Hotel Name</h3>
-              <p className="text-sm font-semibold text-slate-600">Logo</p>
+          {/* --- SECTION: INVOICE DISPLAY --- */}
+          {editableBooking.status === 'Checked Out' && (
+            <div className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
+              {isInvoiceLoading && <p className="text-center text-slate-500">Loading Invoice...</p>}
+              {error && !isInvoiceLoading && <p className="text-center text-red-500">{error}</p>}
+
+              {!isInvoiceLoading && invoiceData && (
+                <>
+                  <div className="text-center mb-4">
+                    <h3 className="font-bold text-slate-800">Hotel Name</h3>
+                    <p className="text-sm font-semibold text-slate-600">Logo</p>
+                  </div>
+                  <div className="space-y-2 text-sm text-slate-600 mb-6">
+                    <div className="flex justify-between"><span className="font-semibold">Address:</span> <span>123 Example St, City</span></div>
+                    <div className="flex justify-between"><span className="font-semibold">Contact:</span> <span>099877542</span></div>
+                  </div>
+                  <div className="border-y border-slate-200 py-4 mb-4">
+                    <div className="space-y-2 text-sm text-slate-600">
+                      <div className="flex justify-between"><span className="font-semibold">Fullname:</span> <span>{editableBooking.guest_fullname}</span></div>
+                      <div className="flex justify-between"><span className="font-semibold">ID:</span> <span>{editableBooking.guest_id_card}</span></div>
+                      <div className="flex justify-between"><span className="font-semibold">Phone:</span> <span>{editableBooking.guest_phone}</span></div>
+                      <div className="flex justify-between"><span className="font-semibold">Email:</span> <span>{editableBooking.guest_email}</span></div>
+                    </div>
+                  </div>
+                  <h4 className="font-bold text-slate-800 mb-2">Including</h4>
+                  <div className="space-y-3 text-sm">
+                    {invoiceData.roomDetails.map((detail, index) => (
+                        <InvoiceLineItem key={`room-${index}`} label={`Room - ${editableBooking.room_type_name} (${detail.night_count} nights)`} amount={detail.room_total} />
+                    ))}
+                    {invoiceData.serviceDetails.map((service, index) => (
+                        <InvoiceLineItem key={`service-${index}`} label={`${service.service_name} (x${service.quantity})`} amount={service.service_total} />
+                    ))}
+                  </div>
+                  <div className="border-t border-slate-200 mt-4 pt-4 space-y-3 text-sm">
+                    <InvoiceLineItem label="Room Total" amount={invoiceData.total_room} />
+                    <InvoiceLineItem label="Service Total" amount={invoiceData.total_service} />
+                    <InvoiceLineItem label="Surcharges" amount={invoiceData.additional_fee} />
+                    <InvoiceLineItem label={`VAT (${invoiceData.vat_rate * 100}%)`} amount={invoiceData.vat_amount} />
+                    <InvoiceLineItem label="Total" amount={invoiceData.total} isBold={true} />
+                  </div>
+                </>
+              )}
             </div>
-            <div className="space-y-2 text-sm text-slate-600 mb-6">
-              <div className="flex justify-between"><span className="font-semibold">Address:</span> <span>123 Example St, City</span></div>
-              <div className="flex justify-between"><span className="font-semibold">Contact:</span> <span>099877542</span></div>
-            </div>
-            <div className="border-y border-slate-200 py-4 mb-4">
-              <div className="space-y-2 text-sm text-slate-600">
-                <div className="flex justify-between"><span className="font-semibold">Fullname:</span> <span>{booking.guest_fullname}</span></div>
-                <div className="flex justify-between"><span className="font-semibold">ID:</span> <span>{booking.guest_id_card}</span></div>
-                <div className="flex justify-between"><span className="font-semibold">Phone:</span> <span>{booking.guest_phone}</span></div>
-                <div className="flex justify-between"><span className="font-semibold">Email:</span> <span>{booking.guest_email}</span></div>
-              </div>
-            </div>
-            <h4 className="font-bold text-slate-800 mb-2">Including</h4>
-            <div className="space-y-3 text-sm">
-              <InvoiceLineItem label={`Room - ${booking.room_type_name} (${nights} ${nights > 1 ? 'nights' : 'night'})`} amount={roomTotal} />
-            </div>
-            <div className="border-t border-slate-200 mt-4 pt-4 space-y-3 text-sm">
-              <InvoiceLineItem label="VAT (10%)" amount={total - roomTotal} />
-              <div className="flex justify-between items-center text-base font-bold text-slate-800 pt-2">
-                <span>Total</span>
-                <span>{formatCurrency(total)}</span>
-              </div>
-            </div>
-          </div>
+          )}
+
         </div>
       </div>
     </div>
