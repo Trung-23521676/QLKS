@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { updateBooking, deleteBookingById } from '../../API/FrontDeskAPI';
 import { getAllGuestTypes } from '../../API/GuestTypeAPI';
 import { getInvoiceByBookingId } from '../../API/invoiceAPI';
+import { toPng } from 'html-to-image';
 
 const statusStyles = {
   "Due In": "bg-yellow-100 text-yellow-800 border-yellow-400",
@@ -47,6 +48,29 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
 
   const [invoiceData, setInvoiceData] = useState(null);
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
+
+  const handleCapture = async () => {
+        const element = document.getElementById("invoice");
+        if (!element) {
+            alert("Không tìm thấy phần tử #invoice!");
+            return;
+        }
+
+        try {
+            const dataUrl = await toPng(element, {
+                quality: 1,
+                cacheBust: true,
+            });
+            // Tải ảnh về
+            const link = document.createElement("a");
+            link.download = "invoice.png";
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error("Lỗi khi chụp ảnh bằng html-to-image:", error);
+            alert("Có vấn đề khi chụp ảnh, thử lại nhé!");
+        }
+    };
 
    useEffect(() => {
     const fetchGuestTypes = async () => {
@@ -166,6 +190,11 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
   const possibleStatuses = ['Due In', 'Checked In', 'Due Out', 'Checked Out'];
   const formatDateForInput = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
 
+  const handleConfirmAndCapture = async () => {
+  await handleConfirmChanges(); // Gọi confirm trước
+  await handleCapture(); // Rồi mới chụp invoice
+};
+
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-lg flex justify-center items-center z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-4 m-4 transform transition-all max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -274,8 +303,20 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
               {/* Các nút xác nhận và đóng ở bên phải */}
               <div className="flex gap-3">
                 <button onClick={onClose} className="px-6 py-2 rounded-full font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Close</button>
-                <button onClick={handleConfirmChanges} disabled={isUpdating} className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-                  {isUpdating ? 'Saving...' : (editableBooking.status === 'Checked Out' ? 'Confirm and Print Invoice' : 'Confirm Changes')}
+                <button
+                  onClick={
+                    editableBooking.status === 'Checked Out'
+                      ? handleConfirmAndCapture
+                      : handleConfirmChanges
+                  }
+                  disabled={isUpdating}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {isUpdating
+                    ? 'Saving...'
+                    : editableBooking.status === 'Checked Out'
+                    ? 'Confirm and Print Invoice'
+                    : 'Confirm Changes'}
                 </button>
               </div>
             </div>
@@ -283,7 +324,7 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
           
           {/* --- SECTION: INVOICE DISPLAY --- */}
           {editableBooking.status === 'Checked Out' && (
-            <div className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
+            <div id='invoice' className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
               {isInvoiceLoading && <p className="text-center text-slate-500">Loading Invoice...</p>}
               {error && !isInvoiceLoading && <p className="text-center text-red-500">{error}</p>}
 

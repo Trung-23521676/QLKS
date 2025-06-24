@@ -5,9 +5,12 @@ import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./Reservation.css";
 import { getAllReservations } from "../../API/ReservationAPI"; 
+import { io } from "socket.io-client";
+import socket from "../../socket"; // Make sure this path matches your socket instance
 
 export default function Reservations() {
   const navigate = useNavigate();
+  const socket = io("http://localhost:4000");
 
   const [search, setSearch] = useState("");
   const [reservations, setReservations] = useState([]);
@@ -28,6 +31,18 @@ export default function Reservations() {
     };
     fetchReservations();
   }, []);
+
+  useEffect(() => {
+    const handleNewReservation = (bookingData) => {
+      setReservations((prev) => [...prev, bookingData]);
+      alert(`Đơn booking mới! Phòng ${bookingData.reservation_id} được đặt.`);
+      window.location.reload();
+    };
+    socket.on("newReservation", handleNewReservation);
+    return () => {
+      socket.off("newReservation", handleNewReservation);
+    };
+  }, [socket, setReservations]);
 
   const StatusBadge = ({ status }) => {
     if (!status) {

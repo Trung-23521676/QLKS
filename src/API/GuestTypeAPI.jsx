@@ -6,7 +6,7 @@ const API_BASE_URL = '/api';
  */
 export const getAllGuestTypes = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/guests/guestType`);
+    const response = await fetch(`${API_BASE_URL}/prices/guestType`);
 
     if (!response.ok) {
       const errorData = await response.json();

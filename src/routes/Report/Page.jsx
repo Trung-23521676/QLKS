@@ -15,8 +15,6 @@ import {
   import html2canvas from "html2canvas";
 
 
-
-
 export default function Report() {
 
   const [pieChartData, setPieChartData] = useState([]);
@@ -32,7 +30,9 @@ const handleExport = async () => {
       alert("Không tìm thấy phần biểu đồ!");
       return;
     }
-    const canvas = await html2canvas(chartNode);
+    const canvas = await html2canvas(chartNode, {
+  scale: 0.5, // hoặc 0.3 tùy thử
+});
     const chartBase64 = canvas.toDataURL("image/png");
     const response = await fetch("http://localhost:4000/api/report/export", {
       method: "POST",
@@ -49,7 +49,7 @@ const handleExport = async () => {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-  }
+};
 
   useEffect(() => {
     const loadData = async () => {
