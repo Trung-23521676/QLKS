@@ -1,4 +1,5 @@
-  import { useState, useEffect } from "react";
+// ReservationDetail.js
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getReservationById, updateReservation } from "../../API/ReservationAPI"; 
 import { getAvailableRooms } from "../../API/RoomAPI";
@@ -12,7 +13,7 @@ export default function ReservationDetail() {
   const [error, setError] = useState(null);
 
   const [displayStatus, setDisplayStatus] = useState("Awaiting");
-  const [roomId, setRoomId] = useState("");
+  const [roomIds, setRoomIds] = useState([]); // Multiple room IDs
   const [assignNote, setAssignNote] = useState("");
   const [reservationNote, setReservationNote] = useState("");
   const [declinedReason, setDeclinedReason] = useState("");
@@ -33,7 +34,7 @@ export default function ReservationDetail() {
         setReservation(data);
 
         setDisplayStatus(data.status || "Awaiting");
-        setRoomId(data.assigned_room || "");
+        setRoomIds(data.assigned_room ? data.assigned_room.split(",") : []); // Parse multiple room IDs
         setReservationNote(data.reservation_note || "");
         setAssignNote(data.assign_note || "");
         setDeclinedReason(data.declined_reason || "");
@@ -41,12 +42,15 @@ export default function ReservationDetail() {
 
         if (data.status === 'Awaiting' && data.room_type_id) {
           try {
+            const totalGuests = data.adults + data.children * 0.5;
+            const guestsPerRoom = totalGuests / data.number_of_rooms;
+
             const rooms = await getAvailableRooms({
               roomTypeId: data.room_type_id,
               checkIn: data.check_in,
               checkOut: data.check_out,
-              adults: data.adults,
-              children: data.children
+              adults: guestsPerRoom,
+              children: 0
             });
             setAvailableRooms(rooms.map(id => ({ room_id: id })));
           } catch (roomError) {
@@ -61,14 +65,14 @@ export default function ReservationDetail() {
       }
     };
     fetchDetails();
-  }, [reservation_id]); // SỬA LỖI: Dùng 'reservation_id' trong dependency array
+  }, [reservation_id]);
 
   const handleSave = async () => {
     const updatedData = {
       ...reservation,
       status: displayStatus,
       reservation_note: reservationNote,
-      assigned_room: roomId,
+      assigned_room: roomIds.join(","), // Use roomIds array instead of roomId
       assign_note: assignNote,
       declined_reason: declinedReason,
       payment_method: paymentMethod,
@@ -84,7 +88,6 @@ export default function ReservationDetail() {
     }
 
     try {
-      // SỬA LỖI: Dùng 'reservation_id' khi gọi API update
       await updateReservation(reservation_id, updatedData);
       alert("Reservation updated successfully!");
       navigate("/Reservations");
@@ -93,7 +96,7 @@ export default function ReservationDetail() {
     }
   };
 
-  const formatDate = (dateString) => {
+   const formatDate = (dateString) => {
     if (!dateString) return "";
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     return new Date(dateString).toLocaleDateString('en-GB', options).replace(/\//g, '/');
@@ -107,72 +110,77 @@ export default function ReservationDetail() {
 
   const renderAssignmentUI = () => {
     switch (displayStatus) {
-        case 'Awaiting':
-          return (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Gán phòng</label>
-                <input
-                  type="text"
-                  placeholder="Chọn một phòng ở dưới"
-                  value={roomId}
-                  onChange={(e) => setRoomId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Phòng đề xuất</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {availableRooms.length > 0 ? (
-                    availableRooms.map(room => (
+      case 'Awaiting':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Phòng đề xuất</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {availableRooms.length > 0 ? (
+                  availableRooms.map(room => {
+                    const selected = roomIds.includes(room.room_id);
+                    return (
                       <button
                         key={room.room_id}
-                        onClick={() => setRoomId(room.room_id)}
-                        className={`px-3 py-1 border rounded-full text-sm font-semibold transition-colors ${roomId === room.room_id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-500 hover:bg-blue-50'}`}
+                        onClick={() => {
+                          setRoomIds(prev =>
+                            selected
+                              ? prev.filter(id => id !== room.room_id)
+                              : prev.length < reservation.number_of_rooms
+                                ? [...prev, room.room_id]
+                                : prev
+                          );
+                        }}
+                        className={`px-3 py-1 border rounded-full text-sm font-semibold transition-colors ${
+                          selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-500 hover:bg-blue-50'
+                        }`}
                       >
                         {room.room_id}
                       </button>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">Không có phòng trống cho loại phòng này.</p>
-                  )}
-                </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-gray-500">Không có phòng trống cho loại phòng này.</p>
+                )}
               </div>
             </div>
-          );
-        case 'Declined':
-          return (
+          </div>
+        );
+      case 'Declined':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Lý do từ chối</label>
+            <input
+              type="text"
+              value={declinedReason}
+              onChange={(e) => setDeclinedReason(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+          </div>
+        );
+      case 'Confirmed':
+        return (
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Lý do từ chối</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Phòng đã gán</label>
+              <p className="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-gray-700 font-medium">
+                {roomIds.length > 0 ? roomIds.join(", ") : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Ghi chú gán phòng</label>
               <input
-                 type="text"
-                 value={declinedReason}
-                 onChange={(e) => setDeclinedReason(e.target.value)}
-                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                type="text"
+                value={assignNote}
+                onChange={(e) => setAssignNote(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
-          );
-        case 'Confirmed':
-          return (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Phòng đã gán</label>
-                <p className="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-gray-700 font-medium">{roomId || 'N/A'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Ghi chú gán phòng</label>
-                <input
-                   type="text"
-                   value={assignNote}
-                   onChange={(e) => setAssignNote(e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </div>
-            </div>
-          );
-        default:
-          return null;
-      }
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   if (isLoading) return <div className="p-8">Loading reservation details...</div>;
@@ -181,14 +189,15 @@ export default function ReservationDetail() {
 
   return (
     <div className="p-2 md:p-8 min-h-screen font-sans">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Reservation #{reservation.reservation_id}</h2>
+<h2 className="text-2xl font-bold text-gray-800 mb-6">Reservation #{reservation.reservation_id}</h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm font-medium text-gray-500">Thời gian</p>
-            <p className="text-base text-gray-800">{formatFullDate(reservation.created_at)}</p>
-          </div>
+      <p className="text-sm font-medium text-gray-500">Thời gian</p>
+      <p className="text-base text-gray-800">{formatFullDate(reservation.created_at)}</p>
+    </div>
+
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center mb-4">
               <div className="w-16 h-16 rounded-full bg-gray-300 mr-4 flex-shrink-0"></div>
@@ -239,15 +248,14 @@ export default function ReservationDetail() {
           </div>
         </div>
       </div>
-
       <div className="mt-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row">
           <div className="md:w-1/2 md:pr-6 mb-6 md:mb-0">
             <p className="text-sm font-medium text-gray-500 mb-2">Trạng thái hiện tại</p>
             <select value={displayStatus} onChange={(e) => setDisplayStatus(e.target.value)} className="w-auto px-3 py-1 border border-blue-400 bg-blue-50 text-blue-700 rounded-full font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                <option value="Awaiting">Awaiting</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Declined">Declined</option>
+              <option value="Awaiting">Awaiting</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Declined">Declined</option>
             </select>
           </div>
           <div className="w-full md:w-px bg-gray-200 mx-auto md:mx-0 h-px md:h-auto"></div>

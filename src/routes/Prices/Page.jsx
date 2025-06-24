@@ -11,21 +11,33 @@ import EditServiceModal from "./EditServiceModal";
 import DeleteServiceModal from "./DeleteServiceModal";
 import { fetchRoomTypes } from "../../API/PricesAPI";
 import { fetchServices } from "../../API/PricesAPI";
+import { fetchGuestTypes } from "../../API/PricesAPI";
+import GuestTypeTable from "./GuestTypeTable";
+import CreateGuestTypeModal from "./CreateGuestModal";
+import EditGuestTypeModal from "./EditGuestModal";
+import DeleteGuestTypeModal from "./DeleteGuestModal";
+
 
 
 export default function Prices() {
   const [search1, setSearch1] = useState("");
   const [search2, setSearch2] = useState("");
+  const [search3, setSearch3] = useState("");
   const [isModalOpen1, setIsModalOpen1] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isModalOpen3, setIsModalOpen3] = useState(false);
   const [isEditModalOpen1, setIsEditModalOpen1] = useState(false);
   const [isDeleteModalOpen1, setIsDeleteModalOpen1] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isEditModalOpen2, setIsEditModalOpen2] = useState(false);
   const [isDeleteModalOpen2, setIsDeleteModalOpen2] = useState(false);
+  const [isEditModalOpen3, setIsEditModalOpen3] = useState(false);
+  const [isDeleteModalOpen3, setIsDeleteModalOpen3] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [services, setServices] = useState([]);
+  const [guestTypes, setGuestTypes] = useState([]);
+  const [selectedGuest, setSelectedGuest] = useState(null);
 
   useEffect(() => {
   const fetchData = async () => {
@@ -34,8 +46,10 @@ export default function Prices() {
       setRooms(rooms);
       const services = await fetchServices();
       setServices(services);
+      const guestType = await fetchGuestTypes();
+      setGuestTypes(guestType);
     } catch (err) {
-      // đã được log sẵn bên service
+      console.log('et o et');
     }
   };
   fetchData();
@@ -59,6 +73,17 @@ const refreshServices = async () => {
   }
 };
 
+const refreshGuestTypes = async () => {
+  try {
+    const data = await fetchGuestTypes();
+    setGuestTypes(data);
+  } catch (err) {
+    // log đã xử lý
+  }
+};
+
+
+
   const handleEditRoom = (room) => {
     setSelectedRoom(room);
     setIsEditModalOpen1(true);
@@ -78,6 +103,16 @@ const refreshServices = async () => {
     setSelectedService(service);
     setIsDeleteModalOpen2(true);
   }
+
+  const handleEditGuest = (guest) => {
+  setSelectedGuest(guest);
+  setIsEditModalOpen3(true);
+};
+
+const handleDeleteGuest = (guest) => {
+  setSelectedGuest(guest);
+  setIsDeleteModalOpen3(true);
+};
 
 
 
@@ -174,6 +209,59 @@ const refreshServices = async () => {
             />
           )}
       </div>
+
+
+      <div className="labelsearch">
+  <div>
+    <p className="name">Guest Types</p>
+    <p className="labeldash">__________</p>
+  </div>
+
+  <div className="prices-header">
+    <input
+      type="text"
+      placeholder="Search by guest type name"
+      className="search-input"
+      value={search3}
+      onChange={(e) => setSearch3(e.target.value)}
+    />
+
+    <button
+      className="create-button"
+      onClick={() => setIsModalOpen3(true)}
+    >
+      Create guest type
+    </button>
+    <CreateGuestTypeModal onSuccess={refreshGuestTypes} isOpen={isModalOpen3} onClose={() => setIsModalOpen3(false)} />
+  </div>
+</div>
+
+<div>
+  <GuestTypeTable
+    guestTypes={guestTypes}
+    search={search3}
+    onEdit={handleEditGuest}
+    onDelete={handleDeleteGuest}
+  />
+
+  {isEditModalOpen3 && (
+    <EditGuestTypeModal
+      isOpen={isEditModalOpen3}
+      guest={selectedGuest}
+      onClose={() => setIsEditModalOpen3(false)}
+      onSuccess={refreshGuestTypes}
+    />
+  )}
+
+  {isDeleteModalOpen3 && (
+    <DeleteGuestTypeModal
+      isOpen={isDeleteModalOpen3}
+      guest={selectedGuest}
+      onClose={() => setIsDeleteModalOpen3(false)}
+      onSuccess={refreshGuestTypes}
+    />
+  )}
+</div>
     </div>
   );
 }

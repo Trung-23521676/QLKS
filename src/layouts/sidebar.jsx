@@ -3,8 +3,20 @@ import { NavLink } from "react-router-dom";
 import { navbarLinks } from "../constants";
 import PropTypes from "prop-types";
 import "../layouts/sidebar.css";
+import { useNavigate } from "react-router-dom";
 
 export const Sidebar = forwardRef((props, ref) => {
+
+    const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // 1. Xóa token/localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user"); // nếu có
+
+    // 2. Điều hướng về trang đăng nhập
+    navigate("/login");
+  };
     return (
         <aside ref={ref} className="sidebar">
             {/* Logo */}
@@ -51,7 +63,7 @@ export const Sidebar = forwardRef((props, ref) => {
                 justifyContent: "center",
                 padding: 16,
             }}>
-                <button className="sidebar-item" style={{
+                <button onClick={handleLogout} className="sidebar-item" style={{
                     borderRadius: "50%",
                     width: 44,
                     height: 44,

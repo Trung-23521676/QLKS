@@ -14,7 +14,7 @@ export const Header = () => {
                 <RealTimeClock />
             </div>
             <div className="header-right">
-                <div className="notification-icon" onClick={() => setShowNoti((v) => !v)}>
+                {/* <div className="notification-icon" onClick={() => setShowNoti((v) => !v)}>
                     <Bell size={22} className="bell-icon" />
                     <span className="notification-badge">2</span>
                     {showNoti && <NotiBox onClose={() => setShowNoti(false)} />}
@@ -23,7 +23,7 @@ export const Header = () => {
                     src={profileImg}
                     alt="profile"
                     className="profile-avatar"
-                />
+                /> */}
             </div>
         </header>
     );
