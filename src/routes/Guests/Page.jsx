@@ -32,6 +32,7 @@ export default function Guests() {
           id: g.id_card,
           guest_type_id: g.guest_type_id,
           status: g.status,
+          address: g.address,
           type: g.guest_type_id === 1 ? "domestic" : "international",
         }));
 
@@ -139,6 +140,7 @@ export default function Guests() {
               <tr>
                 <th>Guest</th>
                 <th>ID</th>
+                <th>Address</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -148,6 +150,7 @@ export default function Guests() {
                   <tr key={g.index}>
                     <td className="guest">{g.name}</td>
                     <td>{g.id}</td>
+                    <td>{g.address}</td>
                     <td>
                       <StatusBadge status={g.status} />
                     </td>
