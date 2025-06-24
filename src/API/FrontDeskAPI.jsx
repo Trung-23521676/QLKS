@@ -71,3 +71,25 @@ export const updateBooking = async (bookingId, bookingData) => {
   });
   return handleResponse(response);
 };
+
+/**
+ * Xóa một booking dựa vào ID
+ * @param {number} bookingId - ID của booking cần xóa
+ * @returns {Promise<Object>} - Thông báo thành công từ API
+ */
+export const deleteBookingById = async (bookingId) => {
+  try {
+    const response = await fetch(`/api/frontdesk/booking/${bookingId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Xóa đặt phòng thất bại');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Lỗi khi xóa đặt phòng:', error);
+    throw error;
+  }
+};
