@@ -49,6 +49,8 @@ export default function Reservations() {
   if (isLoading) return <div className="p-4">Loading reservations...</div>;
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
+  
+
   return (
     <div className="rooms-container">
       <p className="name">Reservations</p>
