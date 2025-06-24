@@ -7,45 +7,13 @@ import {
 } from "recharts";
 import { format } from 'date-fns';
 import { 
-  fetchCheckInOutOverview,
+  fetchCheckIn,
+  fetchInternationalGuest,
   fetchRoomTypeStats,
   fetchServiceStats,
-  fetchRevenueStats,
-  exportReportWithChart } from "../../API/ReportAPI";
+  fetchRevenueStats,} from "../../API/ReportAPI";
   import html2canvas from "html2canvas";
 
-const pieData = [
-  { name: "A2", value: 52.1, color: "#A5D8FF" },
-  { name: "A3", value: 22.8, color: "#FFC9C9" },
-  { name: "C1", value: 13.9, color: "#FFD43B" },
-  { name: "Other", value: 11.2, color: "#D3F9D8" },
-];
-
-const serviceData = [
-  { name: "F&B", value: 15000, color: "#FFF3BF" },
-  { name: "F&B", value: 28000, color: "#D3F9D8" },
-  { name: "F&B", value: 22000, color: "#FFE8CC" },
-  { name: "F&B", value: 31000, color: "#A5D8FF" },
-  { name: "F&B", value: 14000, color: "#FCC419" },
-  { name: "F&B", value: 25000, color: "#69DB7C" },
-  { name: "F&B", value: 26000, color: "#FAB005" },
-  { name: "F&B", value: 26000, color: "#228BE6" },
-];
-
-const occupancyData = [
-  { name: "Jan", percent: 96 },
-  { name: "Feb", percent: 97 },
-  { name: "Mar", percent: 85 },
-  { name: "Apr", percent: 78 },
-  { name: "May", percent: 95 },
-  { name: "Jun", percent: 70 },
-  { name: "Jul", percent: 92 },
-  { name: "Aug", percent: 48 },
-  { name: "Sep", percent: 100 },
-  { name: "Oct", percent: 89 },
-  { name: "Nov", percent: 87 },
-  { name: "Dec", percent: 88 },
-];
 
 
 
@@ -54,7 +22,8 @@ export default function Report() {
   const [pieChartData, setPieChartData] = useState([]);
   const [serviceData, setServiceData] = useState([]);
   const [revenueData, setRevenueData] = useState([]);
-
+  const [checkInCount, setCheckInCount] = useState(0);
+  const [intlGuestCount, setIntlGuestCount] = useState(0);
   
 
 const handleExport = async () => {
@@ -81,6 +50,22 @@ const handleExport = async () => {
     a.remove();
     window.URL.revokeObjectURL(url);
   }
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const checkInData = await fetchCheckIn();
+        const intlData = await fetchInternationalGuest();
+
+
+        setCheckInCount(checkInData.total_bookings || '0');
+        setIntlGuestCount(intlData.international_guests || '0');
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu báo cáo:", err);
+      }
+    };
+    loadData();
+  }, []);
 
   useEffect(() => {
   const loadRoomTypeData = async () => {
@@ -214,7 +199,7 @@ const renderCustomLegend = () => {
               <p className="label2">Booking</p>
             </div>
           </div>
-          <p className="content">23</p>
+          <p className="content">{checkInCount}</p>
 
           <div>
             <div className="tittle">
@@ -222,7 +207,7 @@ const renderCustomLegend = () => {
               <p className="label2">International Guest</p>
             </div>
           </div>
-          <p className="content">23</p>
+          <p className="content">{intlGuestCount}</p>
         </div>
       </div>
 

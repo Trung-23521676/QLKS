@@ -53,7 +53,7 @@ export default function Reservations() {
 
   return (
     <div className="rooms-container">
-      <p className="name">Reservations</p>
+      <p className="name">Reservations</p>  
       <p className="labeldash">_____________</p>
       <div className="rheader">
         <input
