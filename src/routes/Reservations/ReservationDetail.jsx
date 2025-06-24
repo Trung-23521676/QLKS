@@ -204,7 +204,7 @@ export default function ReservationDetail() {
               <h3 className="text-xl font-semibold text-gray-800">{reservation.guest_fullname}</h3>
             </div>
             <div className="space-y-2 text-sm text-gray-700">
-              <div className="flex"><p className="font-medium text-gray-600 w-20">ID</p>: {reservation.guest_id_card || 'N/A'}</div>
+              <div className="flex"><p className="font-medium text-gray-600 w-20">ID</p>: {reservation.guest_cccd || 'N/A'}</div>
               <div className="flex"><p className="font-medium text-gray-600 w-20">Điện thoại</p>: {reservation.guest_phone}</div>
               <div className="flex"><p className="font-medium text-gray-600 w-20">Email</p>: {reservation.guest_email}</div>
               <div className="flex"><p className="font-medium text-gray-600 w-20">Địa chỉ</p>: {reservation.guest_address}</div>

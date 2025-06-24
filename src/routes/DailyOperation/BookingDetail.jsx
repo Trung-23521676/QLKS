@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { updateBooking, deleteBookingById } from '../../API/FrontDeskAPI';
 import { getAllGuestTypes } from '../../API/GuestTypeAPI';
 import { getInvoiceByBookingId } from '../../API/invoiceAPI';
-import { toPng } from 'html-to-image';
 
 const statusStyles = {
   "Due In": "bg-yellow-100 text-yellow-800 border-yellow-400",
@@ -49,29 +48,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
   const [invoiceData, setInvoiceData] = useState(null);
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
 
-  const handleCapture = async () => {
-        const element = document.getElementById("invoice");
-        if (!element) {
-            alert("Không tìm thấy phần tử #invoice!");
-            return;
-        }
-
-        try {
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                cacheBust: true,
-            });
-            // Tải ảnh về
-            const link = document.createElement("a");
-            link.download = "invoice.png";
-            link.href = dataUrl;
-            link.click();
-        } catch (error) {
-            console.error("Lỗi khi chụp ảnh bằng html-to-image:", error);
-            alert("Có vấn đề khi chụp ảnh, thử lại nhé!");
-        }
-    };
-
    useEffect(() => {
     const fetchGuestTypes = async () => {
         try {
@@ -87,7 +63,11 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
 
   useEffect(() => {
     if (booking) {
-      setEditableBooking({ ...booking });
+      const companionsWithTempId = (booking.companions || []).map(c => ({
+        ...c,
+        temp_id: Date.now() + Math.random()
+      }));
+      setEditableBooking({ ...booking, companions: companionsWithTempId });
       setInvoiceData(null); 
       if (booking.status === 'Checked Out') {
         fetchInvoiceData(booking.booking_id);
@@ -150,13 +130,53 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
     setIsGuestTypeOpen(false);
   };
   
+  const handleAddCompanion = () => {
+    const newCompanion = {
+      temp_id: Date.now(),
+      fullname: '',
+      id_card: '',
+      address: '',
+      guest_type_id: 1,
+      guest_type_name: 'National'
+    };
+    setEditableBooking(prev => ({
+      ...prev,
+      companions: [...(prev.companions || []), newCompanion]
+    }));
+  };
+
+  const handleRemoveCompanion = (temp_id) => {
+    if (window.confirm('Are you sure you want to remove this companion?')) {
+      setEditableBooking(prev => ({
+        ...prev,
+        companions: prev.companions.filter(c => c.temp_id !== temp_id)
+      }));
+    }
+  };
+
+  const handleCompanionChange = (temp_id, field, value) => {
+    const newCompanions = editableBooking.companions.map(comp => {
+      if (comp.temp_id === temp_id) {
+        const updatedComp = { ...comp, [field]: value };
+        if (field === 'guest_type_name') {
+            const selectedType = allGuestTypes.find(t => t.guest_type_name === value);
+            if (selectedType) {
+                updatedComp.guest_type_id = selectedType.guest_type_id;
+            }
+        }
+        return updatedComp;
+      }
+      return comp;
+    });
+    setEditableBooking(prev => ({ ...prev, companions: newCompanions }));
+  };
+  
   const handleConfirmChanges = async () => {
     if (isUpdating) return;
     setIsUpdating(true);
     setError('');
     try {
-      // Gửi toàn bộ editableBooking, bao gồm cả guest_type_name mới
-      await updateBooking(booking.booking_id, editableBooking); //
+      await updateBooking(booking.booking_id, editableBooking);
       if (onBookingUpdate) {
         onBookingUpdate();
       }
@@ -168,7 +188,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
     }
   };
   const handleDeleteBooking = async () => {
-    // Hỏi xác nhận trước khi thực hiện hành động nguy hiểm
     if (!window.confirm('Bạn có chắc chắn muốn xóa đặt phòng này không? Hành động này không thể hoàn tác.')) {
       return;
     }
@@ -178,8 +197,8 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
     try {
       await deleteBookingById(booking.booking_id);
       alert('Xóa đặt phòng thành công!');
-      onBookingUpdate(); // Gọi callback để làm mới danh sách booking ở component cha
-      onClose();       // Đóng modal sau khi xóa thành công
+      onBookingUpdate();
+      onClose();
     } catch (err) {
       setError(err.message || 'Xóa đặt phòng thất bại.');
     } finally {
@@ -189,11 +208,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
 
   const possibleStatuses = ['Due In', 'Checked In', 'Due Out', 'Checked Out'];
   const formatDateForInput = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
-
-  const handleConfirmAndCapture = async () => {
-  await handleConfirmChanges(); // Gọi confirm trước
-  await handleCapture(); // Rồi mới chụp invoice
-};
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-lg flex justify-center items-center z-50" onClick={onClose}>
@@ -207,7 +221,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
         <div className="flex flex-col md:flex-row gap-8 p-4">
           <div className={`w-full ${editableBooking.status === 'Checked Out' ? 'md:w-3/5' : 'md:w-full'} space-y-6 transition-all duration-300`}>
             
-            {/* --- SECTION: GUEST --- */}
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">GUEST</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,7 +252,63 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
                 </div>
             </div>
 
-            {/* --- SECTION: RESERVATION --- */}
+            <div>
+                <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm font-semibold text-slate-500 tracking-wider">COMPANIONS</p>
+                    <button 
+                        type="button" 
+                        onClick={handleAddCompanion}
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                        + Add Companion
+                    </button>
+                </div>
+                <div className="space-y-4">
+                    {(editableBooking.companions || []).map((companion, index) => (
+                        <div key={companion.temp_id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative">
+                            <p className="text-xs font-bold text-slate-600 mb-3">Companion {index + 1}</p>
+                            <button 
+                                onClick={() => handleRemoveCompanion(companion.temp_id)}
+                                className="absolute top-2 right-2 text-red-400 hover:text-red-600 p-1 rounded-full"
+                                title="Remove Companion"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <EditableField 
+                                    label="Fullname" 
+                                    name="fullname" 
+                                    value={companion.fullname} 
+                                    onChange={(e) => handleCompanionChange(companion.temp_id, 'fullname', e.target.value)} 
+                                />
+                                <EditableField 
+                                    label="ID Card" 
+                                    name="id_card" 
+                                    value={companion.id_card} 
+                                    onChange={(e) => handleCompanionChange(companion.temp_id, 'id_card', e.target.value)}
+                                />
+                                <div className="md:col-span-2">
+                                     <label className="text-xs font-semibold text-slate-500 block mb-1 tracking-wider">Type</label>
+                                     <select
+                                        value={companion.guest_type_name}
+                                        onChange={(e) => handleCompanionChange(companion.temp_id, 'guest_type_name', e.target.value)}
+                                        className="w-full p-3 rounded-lg font-medium text-slate-700 border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    >
+                                        {allGuestTypes.map(type => (
+                                            <option key={type.guest_type_id} value={type.guest_type_name}>
+                                                {type.guest_type_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">RESERVATION</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -252,7 +321,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
                 </div>
             </div>
 
-            {/* --- SECTION: PAYMENT --- */}
             <div>
                 <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">PAYMENT</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -261,7 +329,6 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
                 </div>
             </div>
 
-            {/* --- SECTION: STATUS --- */}
             <div className="pt-2">
               <p className="text-sm font-semibold text-slate-500 mb-2 tracking-wider">STATUS</p>
               {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
@@ -289,9 +356,7 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
               </div>
             </div>
 
-            {/* --- SECTION: ACTION BUTTONS --- */}
              <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center">
-              {/* Nút Xóa ở bên trái */}
               <button
                 onClick={handleDeleteBooking}
                 disabled={isUpdating}
@@ -300,31 +365,17 @@ export default function BookingDetail({ isOpen, onClose, booking, onBookingUpdat
                 Delete Booking
               </button>
 
-              {/* Các nút xác nhận và đóng ở bên phải */}
               <div className="flex gap-3">
                 <button onClick={onClose} className="px-6 py-2 rounded-full font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Close</button>
-                <button
-                  onClick={
-                    editableBooking.status === 'Checked Out'
-                      ? handleConfirmAndCapture
-                      : handleConfirmChanges
-                  }
-                  disabled={isUpdating}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {isUpdating
-                    ? 'Saving...'
-                    : editableBooking.status === 'Checked Out'
-                    ? 'Confirm and Print Invoice'
-                    : 'Confirm Changes'}
+                <button onClick={handleConfirmChanges} disabled={isUpdating} className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                  {isUpdating ? 'Saving...' : (editableBooking.status === 'Checked Out' ? 'Confirm and Print Invoice' : 'Confirm Changes')}
                 </button>
               </div>
             </div>
           </div>
           
-          {/* --- SECTION: INVOICE DISPLAY --- */}
           {editableBooking.status === 'Checked Out' && (
-            <div id='invoice' className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
+            <div className="w-full md:w-2/5 bg-slate-50 rounded-2xl p-6">
               {isInvoiceLoading && <p className="text-center text-slate-500">Loading Invoice...</p>}
               {error && !isInvoiceLoading && <p className="text-center text-red-500">{error}</p>}
 

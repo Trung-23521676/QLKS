@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "./Reservation.css";
 import { getAllReservations } from "../../API/ReservationAPI"; 
 import { io } from "socket.io-client";
-import socket from "../../socket"; // Make sure this path matches your socket instance
+
 
 export default function Reservations() {
   const navigate = useNavigate();

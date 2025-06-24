@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createBooking } from '../../API/FrontDeskAPI';
 import { getAvailableRooms } from '../../API/RoomAPI';
+// Giả định có một hàm để lấy tất cả các loại phòng
 import { getRoomTypeById, getAllRoomTypes } from '../../API/RoomTypeAPI';
 import useDebounce from '../../hooks/DeBounce';
 
@@ -28,13 +29,16 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
   const [isFetchingRooms, setIsFetchingRooms] = useState(false);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
   const debouncedRoomTypeId = useDebounce(roomTypeId, 500);
+
+
+  // --- START: MODIFICATION 1 ---
   const [allRoomTypes, setAllRoomTypes] = useState([]);
 
   // Effect to fetch all room types on component mount
   useEffect(() => {
     const fetchAllRoomTypes = async () => {
       try {
-        const types = await getAllRoomTypes();
+        const types = await getAllRoomTypes(); // Giả định API này tồn tại
         setAllRoomTypes(types || []);
       } catch (err) {
         console.error("Failed to fetch all room types:", err);
@@ -42,8 +46,9 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
     };
     fetchAllRoomTypes();
   }, []);
+  // --- END: MODIFICATION 1 ---
 
-  // Effect to fetch room data when dependencies change
+  // --- Effect to fetch room data when dependencies change ---
   useEffect(() => {
     const fetchRoomData = async () => {
       if (!debouncedRoomTypeId) {
@@ -54,6 +59,7 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
 
       try {
         const roomTypeDetails = await getRoomTypeById(debouncedRoomTypeId);
+        console.log("Dữ liệu chi tiết loại phòng từ API:", roomTypeDetails);
         setSelectedRoomType(roomTypeDetails);
       } catch (err) {
         console.error("Failed to fetch room type details:", err);
@@ -87,21 +93,13 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
   }, [debouncedRoomTypeId, checkInDate, checkOutDate, adults, children]);
 
   // --- Companion Management ---
-  const handleCompanionChange = (id, field, value) => {
-    const finalValue = field === 'guest_type_id' ? parseInt(value, 10) : value;
-    setCompanions(companions.map(comp => comp.id === id ? { ...comp, [field]: finalValue } : comp));
-  };
-
   const removeCompanion = (idToRemove) => {
     setCompanions(companions.filter(comp => comp.id !== idToRemove));
   };
 
-  const addCompanion = () => {
-      const numAdults = parseInt(adults, 10) || 1;
-      if (!selectedRoomType || (companions.length >= numAdults - 1)) {
-          return;
-      }
-      setCompanions([...companions, { id: Date.now(), fullname: '', idNumber: '', guest_type_id: 1, address: '' }]);
+  const handleCompanionChange = (id, field, value) => {
+    const finalValue = field === 'guest_type_id' ? parseInt(value, 10) : value;
+    setCompanions(companions.map(comp => comp.id === id ? { ...comp, [field]: finalValue } : comp));
   };
 
   // --- Form Submission ---
@@ -132,16 +130,20 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
         guest_type_id: c.guest_type_id,
       })),
     };
-
     try {
+
       const response = await createBooking(bookingData);
+
       console.log('Booking created successfully:', response);
-      alert('Tạo booking thành công!');
-      onClose();
+      alert('Tạo booking thành công!'); // Hoặc một thông báo tinh tế hơn
+      onClose(); // Đóng modal sau khi thành công
+
     } catch (err) {
+      // Bước 4: Xử lý khi có lỗi xảy ra
       console.error("Lỗi khi tạo booking:", err);
-      const errorMessage = err.response?.data?.message || err.message || 'Đã có lỗi xảy ra, vui lòng thử lại.';
-      setError(errorMessage);
+      // Cố gắng lấy thông báo lỗi từ server, nếu không có thì dùng message mặc định
+      setError(err.response?.data?.message || err.message || 'Đã có lỗi xảy ra, vui lòng thử lại.');
+
     } finally {
       setIsLoading(false);
     }
@@ -150,8 +152,12 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
   // --- Derived State for UI Logic ---
   const numAdults = parseInt(adults, 10) || 0;
   const numChildren = parseInt(children, 10) || 0;
-  const totalGuests = numAdults + numChildren;
-  const isAddCompanionDisabled = !selectedRoomType || companions.length >= numAdults - 1;
+  const isAddCompanionDisabled = !selectedRoomType || companions.length >= (numAdults + numChildren) - 1;
+
+  const addCompanion = () => {
+    if (isAddCompanionDisabled) return;
+    setCompanions([...companions, { id: Date.now(), fullname: '', idNumber: '', address: '', guest_type_id: 1 }]);
+  };
 
   // --- Render Method ---
   return (
@@ -165,8 +171,6 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
         </div>
         <form className="p-6 space-y-6">
           {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
-          
-          {/* Guest Information Section */}
           <div className="relative">
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Guest</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -199,27 +203,14 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
               </div>
             </div>
           </div>
-          
-          {/* Booking Details Section */}
           <div>
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Booking Details</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
-                <input required type="date" value={checkInDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+                <input required type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
-                <input required type="date" value={checkOutDate} min={checkInDate || new Date().toISOString().split("T")[0]} onChange={(e) => setCheckOutDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
-              </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
-                <input required type="number" placeholder="Number of adults" min="1" value={adults} onChange={(e) => setAdults(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
-              </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Children</label>
-                <input type="number" placeholder="Number of children" min="0" value={children} onChange={(e) => setChildren(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
-              </div>
+              {/* --- START: MODIFICATION 2 --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
                 <select
@@ -231,31 +222,60 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
                   <option value="">Select a Room Type</option>
                   {allRoomTypes.map(type => (
                     <option key={type.room_type_id} value={type.room_type_id}>
-                      {type.room_type_name} ({type.room_type_id})
+                      {type.room_type_id}
                     </option>
                   ))}
                 </select>
               </div>
+              {/* --- END: MODIFICATION 2 --- */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
+                <input required type="number" placeholder="Number of adults" min="1" value={adults} onChange={(e) => setAdults(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                <input required type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Room ID</label>
-                 <select required value={roomId} onChange={(e) => setRoomId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white" disabled={!roomTypeId || availableRooms.length === 0}>
-                    <option value="">{isFetchingRooms ? 'Searching...' : 'Select a room'}</option>
-                    {availableRooms.map(room => (
-                        <option key={room.room_id} value={room.room_id}>{room.room_id}</option>
-                    ))}
-                </select>
+                <input type="text" placeholder="Select from available rooms" value={roomId} onChange={(e) => setRoomId(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Children</label>
+                <input type="number" placeholder="Number of children" min="0" value={children} onChange={(e) => setChildren(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" />
               </div>
             </div>
 
-            {selectedRoomType && totalGuests > selectedRoomType.max_guests && (
+            {selectedRoomType && (numAdults + numChildren) > selectedRoomType.max_guests && (
               <div className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                Warning: Total guests ({totalGuests}) exceeds the maximum capacity of {selectedRoomType.max_guests} for this room type.
+                Warning: The total number of guests ({numAdults} Adults, {numChildren} Children) exceeds the maximum capacity of {selectedRoomType.max_guests} for this room type.
               </div>
             )}
-            
+
+            <div className="mt-4">
+              <span className="block text-sm font-medium text-gray-700 mb-2">Available Rooms</span>
+              <div className="flex gap-2 flex-wrap min-h-[38px] items-center p-2 bg-gray-50 rounded-lg">
+                {isFetchingRooms && <p className="text-sm text-gray-500">Searching for rooms...</p>}
+                {!isFetchingRooms && availableRooms.length > 0 && (
+                  availableRooms.map(room => (
+                    <button
+                      key={room.room_id}
+                      type="button"
+                      className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors ${roomId === room.room_id ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                      onClick={() => setRoomId(room.room_id)}>
+                      {room.room_id}
+                    </button>
+                  ))
+                )}
+                {!isFetchingRooms && availableRooms.length === 0 && roomTypeId && checkInDate && checkOutDate && (
+                  <p className="text-sm text-gray-500">No available rooms for the selected dates/type.</p>
+                )}
+                {!(roomTypeId && checkInDate && checkOutDate) && (
+                  <p className="text-sm text-gray-500">Please enter room type, check-in, and check-out dates.</p>
+                )}
+              </div>
+            </div>
           </div>
-          
-          {/* Companions Section */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs uppercase text-gray-500 font-semibold">Companions</p>
@@ -281,10 +301,10 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">ID Card / Passport</label>
                     <input type="text" placeholder="ID Number" value={companion.idNumber} onChange={(e) => handleCompanionChange(companion.id, 'idNumber', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" />
                   </div>
-                   <div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                     <select value={companion.guest_type_id} onChange={(e) => handleCompanionChange(companion.id, 'guest_type_id', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                      <option value={1}>National</option>
+                      <option value={1}>National  </option>
                       <option value={2}>International</option>
                     </select>
                   </div>
@@ -299,11 +319,10 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
               </div>
             ))}
           </div>
-
-          {/* Payment Section */}
           <div>
             <p className="text-xs uppercase text-gray-500 font-semibold mb-3">Payment</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Trường "Price Per Night" đã bị xóa */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                 <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white">
@@ -314,17 +333,15 @@ const CreateBookingModal = ({ isOpen, onClose }) => {
               </div>
             </div>
           </div>
-          
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
             <button type="button" onClick={onClose} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50">
               Cancel
             </button>
-            <button type="submit" onClick={(e) => handleSubmit(e, 'Checked In')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
-              {isLoading ? 'Saving...' : 'Save & Check-in'}
+            <button type="button" onClick={(e) => handleSubmit(e, 'Checked In')} disabled={isLoading} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 disabled:opacity-50">
+              {isLoading ? 'Saving...' : 'Save & check in'}
             </button>
-            <button type="submit" onClick={(e) => handleSubmit(e, 'Due In')} disabled={isLoading} className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 disabled:opacity-50">
-              {isLoading ? 'Creating...' : 'Create Booking'}
+            <button type="button" onClick={(e) => handleSubmit(e, 'Due In')} disabled={isLoading} className="px-6 py-2 bg-yellow-500 text-white rounded-full font-semibold hover:bg-yellow-600 disabled:opacity-50">
+              {isLoading ? 'Creating...' : 'Create booking'}
             </button>
           </div>
         </form>
