@@ -22,7 +22,7 @@ export const getAllRoomTypes = async () => {
 
 
 export const getRoomTypeById = async (roomTypeId) => {
-  const response = await fetch(`/api/prices/roomType/details/${roomTypeId}`, { // Assumes /api/roomtype prefix
+  const response = await fetch(`/api/prices/roomType/${roomTypeId}`, { 
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
