@@ -1,18 +1,17 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./report.css";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  CartesianGrid
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip,
+  LineChart, Line, CartesianGrid, ResponsiveContainer
 } from "recharts";
 import { format } from 'date-fns';
+import { 
+  fetchCheckInOutOverview,
+  fetchRoomTypeStats,
+  fetchServiceStats,
+  fetchRevenueStats,
+  exportReportWithChart } from "../../API/ReportAPI";
 
 const pieData = [
   { name: "A2", value: 52.1, color: "#A5D8FF" },
@@ -81,6 +80,46 @@ const renderCustomLegend = () => {
 const currentMonth = format(new Date(), 'MMM');
 
 export default function Report() {
+  const [roomTypeStats, setRoomTypeStats] = useState([]);
+  const [serviceStats, setServiceStats] = useState([]);
+  const [revenueStats, setRevenueStats] = useState([]);
+
+  const [pieChartData, setPieChartData] = useState([]);
+
+  useEffect(() => {
+  const loadRoomTypeData = async () => {
+    try {
+      const data = await fetchRoomTypeStats(); // [{ room_type_id, total_checked_out }, ...]
+      console.log(data);
+      const total = data.reduce((sum, item) => sum + item.total_checked_out, 0);
+
+      const sorted = [...data].sort((a, b) => b.total_checked_out - a.total_checked_out);
+
+      const top3 = sorted.slice(0, 3).map(item => ({
+        name: item.room_type_id,
+        value: (item.total_checked_out / total) * 100,
+      }));
+
+      const othersValue = sorted
+        .slice(3)
+        .reduce((sum, item) => sum + item.total_checked_out, 0);
+
+      if (othersValue > 0) {
+        top3.push({
+          name: "Others",
+          value: (othersValue / total) * 100,
+        });
+      }
+
+      setPieChartData(top3);
+    } catch (err) {
+      console.error("Failed to load pie chart data", err);
+    }
+  };
+  console.log(pieChartData);
+  loadRoomTypeData();
+}, []);
+
   return (
     <div className="report-page">
       <p className="name">Report</p>
@@ -114,7 +153,7 @@ export default function Report() {
             <ResponsiveContainer width={200} height={170}>
               <PieChart>
                 <Pie
-                  data={pieData}
+                  data={pieChartData}
                   dataKey="value"
                   cx="50%"
                   cy="50%"
