@@ -1,37 +1,59 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Guests.css";
 import { fetchAllGuests } from "../../API/GuestAPI";
+import { fetchGuestTypes } from "../../API/PricesAPI";
+import { SlidersHorizontal } from "lucide-react";
 
 export default function Guests() {
-  const [guest, setGuest] = useState([]);
+  const [guests, setGuests] = useState([]);
+  const [guestTypes, setGuestTypes] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedType, setSelectedType] = useState("all"); // all | domestic | international
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedGuestTypeIds, setSelectedGuestTypeIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showGuestFilter, setShowGuestFilter] = useState(false);
+  const guestFilterRef = useRef(null);
+  const guestButtonRef = useRef(null);
 
+  // Fetch guests + guestTypes
   useEffect(() => {
-    const loadGuests = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-        const dataFromAPI = await fetchAllGuests();
-        const transformed = dataFromAPI.map((g, index) => ({
+        const [guestData, guestTypeData] = await Promise.all([
+          fetchAllGuests(),
+          fetchGuestTypes(),
+        ]);
+
+        const transformedGuests = guestData.map((g, index) => ({
           index,
           name: g.fullname,
           id: g.id_card,
+          guest_type_id: g.guest_type_id,
+          status: g.status,
           type: g.guest_type_id === 1 ? "domestic" : "international",
-          status: g.status, 
         }));
-        setGuest(transformed);
+
+        setGuests(transformedGuests);
+        setGuestTypes(guestTypeData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch guests:", err);
-        setError("Failed to fetch guests");
+        console.error("Failed to fetch data:", err);
+        setError("Failed to fetch guest data.");
       } finally {
         setIsLoading(false);
       }
     };
-    loadGuests();
+
+    loadData();
   }, []);
+
+  const handleGuestTypeChange = (id) => {
+    setSelectedGuestTypeIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   const StatusBadge = ({ status }) => {
     const label =
@@ -48,12 +70,16 @@ export default function Guests() {
     return <span className={className}>{label}</span>;
   };
 
-  const filteredGuests = guest.filter((g) => {
-    const query = search.toLowerCase();
+  const filteredGuests = guests.filter((g) => {
     const matchSearch =
-      g.name.toLowerCase().includes(query) || g.id.toLowerCase().includes(query);
+      g.name.toLowerCase().includes(search.toLowerCase()) ||
+      g.id.toLowerCase().includes(search.toLowerCase());
     const matchType = selectedType === "all" || g.type === selectedType;
-    return matchSearch && matchType;
+    const matchGuestType =
+      selectedGuestTypeIds.length === 0 ||
+      selectedGuestTypeIds.includes(g.guest_type_id);
+
+    return matchSearch && matchType && matchGuestType;
   });
 
   return (
@@ -62,26 +88,13 @@ export default function Guests() {
       <p className="labeldash">__________</p>
 
       <div className="labelsearch">
-        <div>
-          <button
-            className={`fbutton ${selectedType === "all" ? "selected" : "outline"}`}
-            onClick={() => setSelectedType("all")}
+        <button
+            className="filter"
+            ref={guestButtonRef}
+            onClick={() => setShowGuestFilter(!showGuestFilter)}
           >
-            All
+            <SlidersHorizontal size={24} />
           </button>
-          <button
-            className={`fbutton ${selectedType === "domestic" ? "selected" : "outline"}`}
-            onClick={() => setSelectedType("domestic")}
-          >
-            Domestic
-          </button>
-          <button
-            className={`fbutton ${selectedType === "international" ? "selected" : "outline"}`}
-            onClick={() => setSelectedType("international")}
-          >
-            International
-          </button>
-        </div>
 
         <div className="room-header">
           <input
@@ -91,6 +104,28 @@ export default function Guests() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+
+          
+
+          {showGuestFilter && (
+            <div className="filter-panel" ref={guestFilterRef}>
+              <div>
+                <p className="filter-title">Guest type</p>
+                <div className="filter-options">
+                  {guestTypes.map((type) => (
+                    <label key={type.guest_type_id} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedGuestTypeIds.includes(type.guest_type_id)}
+                        onChange={() => handleGuestTypeChange(type.guest_type_id)}
+                      />
+                      {type.guest_type_name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -120,7 +155,7 @@ export default function Guests() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="no-data">
+                  <td colSpan={3} className="no-data">
                     No matching guests found.
                   </td>
                 </tr>
