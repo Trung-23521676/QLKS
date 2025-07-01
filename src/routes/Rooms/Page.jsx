@@ -152,7 +152,7 @@ export default function Rooms() {
                   <td>{room.room_floor}</td>
                   <td>{room.booking_id || ""}</td>
                   <td>
-                    <StatusBadge status={room.is_booked ? "Booked" : "Available"} />
+                    <StatusBadge status={room.is_booked_today ? "Booked" : "Available"} />
                   </td>
                 </tr>
               ))
